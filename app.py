@@ -55,6 +55,8 @@ doces = [
 # --- LÓGICA DAS PÁGINAS ---
 
 if selected == "Início":
+    # No início do arquivo ou na aba "Início"
+    st.image("assets/logo.png", width=200)
     st.markdown("<h1 class='main-title'>Ateliê Doces Denise Borges</h1>", unsafe_allow_html=True)
     st.image("https://via.placeholder.com/800x400?text=Logo+Denise+Borges", use_column_width=True)
     st.write("---")
