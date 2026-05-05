@@ -67,7 +67,7 @@ doces = [
 
 if selected == "Início":
     # Logo diminuído conforme solicitado
-    st.image("assets/logo.jpg", width=250) 
+    st.image("ATELIÊ DOCES Denise Borges (3).png", width=250) 
     st.title("Ateliê Doces Denise Borges")
     st.write("---")
     st.subheader("Bem-vindo, abençoado(a)!")
