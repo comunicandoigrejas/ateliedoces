@@ -73,7 +73,7 @@ doces = [
 # --- LÓGICA DAS TELAS ---
 
 if selected == "Início":
-    st.image("Cópia de ATELIÊ DOCES Denise Borges.jpg", use_column_width=True)
+    st.image("ATELIÊ DOCES Denise Borges (3).png", use_column_width=True)
     st.markdown("<h1 style='text-align: center;'>Bem-vindo ao Ateliê!</h1>", unsafe_allow_html=True)
     st.write("---")
     st.markdown("### A Paz do Senhor, varão e varoa!")
