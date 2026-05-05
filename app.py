@@ -1,146 +1,204 @@
 import streamlit as st
 from streamlit_option_menu import option_menu
 import pandas as pd
-import mercadopago
+import os
+import urllib.parse
 
-# --- CONFIGURAÇÕES E ESTILO ---
-st.set_page_config(page_title="Ateliê Doces Denise Borges", page_icon="🧁")
+# --- CONFIGURAÇÕES DA PÁGINA ---
+st.set_page_config(page_title="Ateliê Doces Denise Borges", page_icon="🧁", layout="centered")
 
+# --- ESTILIZAÇÃO CSS (Layout Leve e Tons Pastel) ---
 st.markdown("""
     <style>
-    .stApp { background-color: #FFF0F5; } /* Fundo Rosa Claro */
-    h1, h2, h3 { color: #5D4037; font-family: 'Arial'; }
-    /* Estilização dos botões com sua paleta */
-    div.stButton > button {
-        border-radius: 20px;
-        font-weight: bold;
-        transition: 0.3s;
+    /* Fundo Rosa Claro */
+    .stApp {
+        background-color: #FFF0F5;
     }
-    .btn-roxo { background-color: #8E44AD; color: white; }
-    .btn-verde { background-color: #27AE60; color: white; }
-    .btn-azul { background-color: #2980B9; color: white; }
+    /* Cores da Paleta nos Títulos e Botões */
+    h1, h2, h3, p {
+        color: #4B0082; /* Roxo suave */
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+    /* Botões personalizados */
+    div.stButton > button {
+        background-color: #8E44AD; /* Roxo */
+        color: white;
+        border-radius: 15px;
+        border: none;
+        width: 100%;
+        font-weight: bold;
+    }
+    div.stButton > button:hover {
+        background-color: #2980B9; /* Azul ao passar o mouse */
+        color: white;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# --- INTEGRAÇÃO MERCADO PAGO ---
-# O token deve ser configurado nos Secrets do Streamlit Cloud
-try:
-    sdk = mercadopago.SDK(st.secrets["MP_ACCESS_TOKEN"])
-except:
-    sdk = None
+# --- FUNÇÃO PARA EXIBIÇÃO DE IMAGEM SEGURA ---
+def exibir_imagem(caminho, largura):
+    if os.path.exists(caminho):
+        st.image(caminho, width=largura)
+    else:
+        # Placeholder se o arquivo não estiver na pasta assets
+        st.image("https://via.placeholder.com/400x400?text=Doce+Abençoado", width=largura)
 
-def gerar_pagamento(itens, total):
-    if not sdk: return "#"
-    preference_data = {
-        "items": [{"title": "Pedido Ateliê Denise", "quantity": 1, "unit_price": float(total), "currency_id": "BRL"}],
-        "back_urls": {"success": "https://share.streamlit.io/"},
-        "auto_return": "approved",
-    }
-    result = sdk.preference().create(preference_data)
-    return result["response"]["init_point"]
+# --- INICIALIZAÇÃO DE DADOS (SESSION STATE) ---
+if 'carrinho' not in st.session_state:
+    st.session_state.carrinho = []
+if 'pontos' not in st.session_state:
+    st.session_state.pontos = {}
+if 'status_pedidos' not in st.session_state:
+    st.session_state.status_pedidos = {}
 
-# --- BANCO DE DADOS (SESSION STATE) ---
-if 'carrinho' not in st.session_state: st.session_state.carrinho = []
-if 'pontos' not in st.session_state: st.session_state.pontos = {}
-if 'status' not in st.session_state: st.session_state.status = {}
-
-# --- MENU ---
+# --- MENU SUPERIOR ---
 selected = option_menu(
     menu_title=None,
     options=["Início", "Cardápio", "Pedidos & Pontos", "Rastreio", "Admin"],
     icons=["house", "book", "cart4", "truck", "shield-lock"],
+    menu_icon="cast",
+    default_index=0,
     orientation="horizontal",
     styles={
-        "container": {"background-color": "#ffffff"},
-        "nav-link-selected": {"background-color": "#FFB6C1", "color": "black"},
+        "container": {"padding": "0!important", "background-color": "#ffffff"},
+        "icon": {"color": "#BA55D3", "font-size": "18px"}, 
+        "nav-link": {"font-size": "14px", "text-align": "center", "margin":"0px", "--hover-color": "#eee"},
+        "nav-link-selected": {"background-color": "#FFB6C1", "color": "black"}, # Rosa médio para aba selecionada
     }
 )
 
-# --- PRODUTOS ---
-doces = [
-    {"nome": "Brigadeiro Gourmet", "preco": 5.0, "img": "assets/logo.jpg"},
-    {"nome": "Bolo de Pote", "preco": 15.0, "img": "assets/logo.jpg"},
-    {"nome": "Copo da Felicidade", "preco": 22.0, "img": "assets/logo.jpg"}
+# --- LISTA DE DOCES (Imagens 1:1) ---
+caminho_img = "assets/logo.png"
+lista_doces = [
+    {"nome": "Brigadeiro Gourmet", "preco": 5.00, "img": caminho_img},
+    {"nome": "Bolo de Pote", "preco": 15.00, "img": caminho_img},
+    {"nome": "Copo da Felicidade", "preco": 22.00, "img": caminho_img},
+    {"nome": "Fatia de Torta", "preco": 12.00, "img": caminho_img}
 ]
 
-# --- LÓGICA DAS TELAS ---
+# --- LÓGICA DAS PÁGINAS ---
 
 if selected == "Início":
-    # Logo diminuído conforme solicitado
-    st.image("ATELIÊ DOCES Denise Borges (3).png", width=250) 
-    st.title("Ateliê Doces Denise Borges")
+    # Logo reduzido conforme solicitado
+    col_l, col_c, col_r = st.columns([1, 2, 1])
+    with col_c:
+        exibir_imagem("assets/logo.png", 200) 
+    
+    st.markdown("<h1 style='text-align: center;'>Ateliê Doces Denise Borges</h1>", unsafe_allow_html=True)
     st.write("---")
-    st.subheader("Bem-vindo, abençoado(a)!")
-    st.write("Doces artesanais feitos para a glória de Deus e alegria do seu coração.")
-    # Versão ARA conforme solicitado
+    st.subheader("Bem-vindo(a), benção!")
+    st.write("Adoçando vidas com amor e dedicação para a honra do Senhor.")
+    
+    # Versão ARA
     st.info("📖 'Provai e vede que o Senhor é bom; bem-aventurado o homem que nele se refugia.' - Salmos 34:8 (ARA)")
 
 elif selected == "Cardápio":
-    st.header("🍰 Nossas Delícias")
-    for d in doces:
-        col1, col2 = st.columns([1, 2])
-        with col1: st.image(["ATELIÊ DOCES Denise Borges (3).png"], width=130)
-        with col2:
-            st.subheader(d["nome"])
-            st.write(f"Preço: R$ {d['preco']:.2f}")
-            if st.button(f"Adicionar {d['nome']}", key=d['nome']):
-                st.session_state.carrinho.append(d)
-                st.toast(f"{d['nome']} na cesta!", icon="🧁")
+    st.header("🧁 Nosso Cardápio")
+    st.write("Escolha as delícias para seu dia:")
+    
+    for doce in lista_doces:
+        with st.container():
+            c1, c2 = st.columns([1, 2])
+            with c1:
+                exibir_imagem(doce["img"], 140) # Formato 1:1
+            with c2:
+                st.subheader(doce["nome"])
+                st.write(f"Valor: **R$ {doce['preco']:.2f}**")
+                if st.button(f"Adicionar {doce['nome']}", key=doce['nome']):
+                    st.session_state.carrinho.append(doce)
+                    st.toast(f"{doce['nome']} adicionado ao carrinho!", icon="🛒")
 
 elif selected == "Pedidos & Pontos":
-    st.header("🛒 Finalizar Pedido")
+    st.header("🛒 Seu Pedido")
     
-    # Login e Pontos
-    whats = st.text_input("Seu WhatsApp (ex: 19992709717)")
-    if whats:
-        pts = st.session_state.pontos.get(whats, 0)
-        st.write(f"✨ **Seus Pontos Atuais:** {pts} pts")
-
+    # Login Simples por WhatsApp
+    id_cliente = st.text_input("Informe seu WhatsApp para acumular pontos (ex: 19992709717)")
+    
+    if id_cliente:
+        pts = st.session_state.pontos.get(id_cliente, 0)
+        st.write(f"✨ **Seus Pontos de Fidelidade:** {pts} pontos")
+    
     if not st.session_state.carrinho:
-        st.warning("O carrinho está vazio, irmão.")
+        st.warning("O carrinho está vazio, varão!")
     else:
-        df = pd.DataFrame(st.session_state.carrinho)
-        total = df['preco'].sum()
-        st.table(df.groupby('nome').size().reset_index(name='Qtd'))
-        st.subheader(f"Total: R$ {total:.2f}")
-
+        df_cart = pd.DataFrame(st.session_state.carrinho)
+        resumo = df_cart.groupby('nome').agg({'preco': ['count', 'sum']})
+        resumo.columns = ['Qtd', 'Subtotal']
+        
+        st.table(resumo)
+        total_geral = resumo['Subtotal'].sum()
+        st.markdown(f"### **Total do Pedido: R$ {total_geral:.2f}**")
+        
         if st.button("Limpar Carrinho"):
             st.session_state.carrinho = []
             st.rerun()
 
-        if whats:
-            nome = st.text_input("Seu Nome")
-            if st.button("💳 Pagar e Finalizar"):
-                # Simula acúmulo de pontos
-                st.session_state.pontos[whats] = pts + int(total)
-                st.session_state.status[whats] = "Pedido Recebido"
+        st.write("---")
+        nome_contato = st.text_input("Seu Nome")
+        
+        if st.button("💬 Finalizar e Solicitar Pagamento"):
+            if nome_contato and id_cliente:
+                # 1. Acumular pontos (1 ponto por real)
+                st.session_state.pontos[id_cliente] = pts + int(total_geral)
+                # 2. Iniciar status de rastreio
+                st.session_state.status_pedidos[id_cliente] = "Aguardando Confirmação"
                 
-                # Gera link Mercado Pago
-                link = gerar_pagamento(df, total)
-                st.markdown(f'<a href="{link}" target="_blank" style="text-decoration:none;"><div style="background-color:#009EE3;color:white;padding:15px;text-align:center;border-radius:10px;font-weight:bold;">PAGAR COM MERCADO PAGO</div></a>', unsafe_allow_html=True)
+                # 3. Formatar Mensagem WhatsApp
+                msg_itens = ""
+                for n, r in resumo.iterrows():
+                    msg_itens += f"- {r['Qtd']}x {n}%0A"
                 
-                # WhatsApp Confirmation
-                zap_msg = f"Olá Denise! Fiz o pedido de {nome}. Total: R$ {total:.2f}."
-                zap_link = f"https://api.whatsapp.com/send?phone=5519992709717&text={zap_msg}"
-                st.markdown(f'<a href="{zap_link}" target="_blank" style="text-decoration:none; margin-top:10px; display:block;"><div style="background-color:#25D366;color:white;padding:15px;text-align:center;border-radius:10px;font-weight:bold;">CONFIRMAR NO WHATSAPP</div></a>', unsafe_allow_html=True)
+                texto = (
+                    f"A Paz do Senhor, Denise! Me chamo *{nome_contato}* e gostaria de confirmar meu pedido:%0A%0A"
+                    f"{msg_itens}"
+                    f"*Total: R$ {total_geral:.2f}*%0A%0A"
+                    f"Poderia me enviar o link de pagamento ou chave PIX, por favor?"
+                )
+                
+                link_zap = f"https://api.whatsapp.com/send?phone=5519992709717&text={texto}"
+                
+                # Botão verde WhatsApp
+                st.markdown(f'''
+                    <a href="{link_zap}" target="_blank" style="text-decoration:none;">
+                        <div style="background-color:#25D366; color:white; padding:15px; 
+                        text-align:center; border-radius:10px; font-weight:bold; font-size:16px;">
+                            SOLICITAR PAGAMENTO NO WHATSAPP
+                        </div>
+                    </a>
+                ''', unsafe_allow_html=True)
+                st.balloons()
+            else:
+                st.error("Por favor, preencha nome e WhatsApp para finalizar o pedido.")
 
 elif selected == "Rastreio":
-    st.header("🚚 Rastreie sua Benção")
-    busca = st.text_input("Digite seu WhatsApp para rastrear")
-    if busca in st.session_state.status:
-        st.success(f"Status do seu pedido: **{st.session_state.status[busca]}**")
-        progresso = {"Pedido Recebido": 25, "Em Preparação": 50, "Saiu para Entrega": 75, "Entregue": 100}
-        st.progress(progresso.get(st.session_state.status[busca], 0))
-    elif busca:
-        st.error("Nenhum pedido ativo encontrado.")
+    st.header("🚚 Rastreie sua Encomenda")
+    busca_zap = st.text_input("Informe seu WhatsApp para ver o status:")
+    
+    if busca_zap in st.session_state.status_pedidos:
+        status_atual = st.session_state.status_pedidos[busca_zap]
+        st.success(f"Status Atual: **{status_atual}**")
+        
+        # Barra de progresso visual
+        progresso_map = {"Aguardando Confirmação": 25, "Preparando com Carinho": 50, "Saiu para Entrega": 75, "Entregue": 100}
+        st.progress(progresso_map.get(status_atual, 0))
+    elif busca_zap:
+        st.error("Nenhum pedido ativo encontrado para este número.")
 
 elif selected == "Admin":
-    st.header("🔐 Área da Denise")
-    senha = st.text_input("Senha", type="password")
-    if senha == "123":
-        for cli, stat in st.session_state.status.items():
-            col1, col2 = st.columns([2,1])
-            novo = col1.selectbox(f"Cliente: {cli}", ["Pedido Recebido", "Em Preparação", "Saiu para Entrega", "Entregue"], key=cli)
-            if col2.button("Atualizar", key=f"up_{cli}"):
-                st.session_state.status[cli] = novo
-                st.success("Atualizado!")
+    st.header("🔐 Painel Administrativo")
+    senha = st.text_input("Senha de Acesso", type="password")
+    
+    if senha == "denise123":
+        if not st.session_state.status_pedidos:
+            st.info("Nenhum pedido registrado no momento.")
+        else:
+            for zap_c, stat_c in st.session_state.status_pedidos.items():
+                col_a, col_b = st.columns([2, 1])
+                with col_a:
+                    novo_status = st.selectbox(f"Cliente: {zap_c}", 
+                        ["Aguardando Confirmação", "Preparando com Carinho", "Saiu para Entrega", "Entregue"], 
+                        key=f"sel_{zap_c}", index=0)
+                with col_b:
+                    if st.button("Atualizar", key=f"btn_{zap_c}"):
+                        st.session_state.status_pedidos[zap_c] = novo_status
+                        st.success("Status Atualizado!")
