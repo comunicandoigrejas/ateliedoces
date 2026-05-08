@@ -6,7 +6,7 @@ import urllib.parse
 import requests
 
 # URL do Apps Script ATUALIZADA
-URL_PLANILHA = "https://script.google.com/macros/s/AKfycbyM8IUPE7mo9ilgf5Yo2xB0JK4VZrsSnCVXLaK2Hj_lkYcNrlhbRB8zaL5IZshJdJCyxA/exec"
+URL_PLANILHA = "https://script.google.com/macros/s/AKfycbxR9RW2jX24bq48KUySXHQOQIe3l5hd-tAlNpTL3yD0Mjyy3vhdzjrskR6zjOop3RO9qQ/exec"
 
 def salvar_na_planilha(nome, whatsapp, pedido, total):
     dados = {
