@@ -5,8 +5,8 @@ import os
 import urllib.parse
 import requests
 
-# URL do Apps Script fornecida
-URL_PLANILHA = "https://script.google.com/macros/s/AKfycbx0jYmFYArWmPBfOXYZDcvRKfF8BmzNF3S1U-mSr_WAHsMN71tLztUfMBbfs76Eaz44zA/exec"
+# URL do Apps Script ATUALIZADA
+URL_PLANILHA = "https://script.google.com/macros/s/AKfycbyM8IUPE7mo9ilgf5Yo2xB0JK4VZrsSnCVXLaK2Hj_lkYcNrlhbRB8zaL5IZshJdJCyxA/exec"
 
 def salvar_na_planilha(nome, whatsapp, pedido, total):
     dados = {
@@ -21,10 +21,19 @@ def salvar_na_planilha(nome, whatsapp, pedido, total):
     except:
         return False
 
+def buscar_dados_planilha():
+    try:
+        resposta = requests.get(URL_PLANILHA)
+        if resposta.status_code == 200:
+            return resposta.json()
+        return []
+    except:
+        return []
+
 # --- CONFIGURAÇÕES DA PÁGINA ---
 st.set_page_config(page_title="Ateliê Doces Denise Borges", page_icon="🧁", layout="centered")
 
-# --- ESTILIZAÇÃO CSS (Fontes Roxas e Botões com Fonte Branca) ---
+# --- ESTILIZAÇÃO CSS ---
 st.markdown("""
     <style>
     .stApp { background-color: #FFF0F5; }
@@ -49,8 +58,6 @@ def exibir_imagem(caminho, largura):
         st.image("https://via.placeholder.com/400x400?text=Doce+Abençoado", width=largura)
 
 if 'carrinho' not in st.session_state: st.session_state.carrinho = []
-if 'pontos' not in st.session_state: st.session_state.pontos = {}
-if 'status_pedidos' not in st.session_state: st.session_state.status_pedidos = {}
 
 # --- MENU ---
 selected = option_menu(
@@ -94,8 +101,9 @@ elif selected == "Pedidos & Pontos":
     st.header("🛒 Seu Pedido")
     id_cliente = st.text_input("WhatsApp (apenas números)")
     if id_cliente:
-        pts = st.session_state.pontos.get(id_cliente, 0)
-        st.write(f"✨ **Seus Pontos:** {pts}")
+        dados = buscar_dados_planilha()
+        total_pontos = sum(float(item['total']) for item in dados if item['whatsapp'] == id_cliente)
+        st.write(f"✨ **Seus Pontos Acumulados:** {int(total_pontos)}")
 
     if not st.session_state.carrinho:
         st.warning("O carrinho está vazio, irmão.")
@@ -110,33 +118,34 @@ elif selected == "Pedidos & Pontos":
         nome_contato = st.text_input("Seu Nome")
         if st.button("💬 Finalizar Pedido"):
             if nome_contato and id_cliente:
-                # Aqui foi corrigida a indentação (espaços à esquerda)
                 sucesso = salvar_na_planilha(nome_contato, id_cliente, str(resumo.index.tolist()), total_geral)
                 if sucesso:
                     texto_pedido = urllib.parse.quote(f"A Paz do Senhor, Denise! Pedido de *{nome_contato}* no valor de *R$ {total_geral:.2f}*.")
                     link_zap = f"https://api.whatsapp.com/send?phone=5519992709717&text={texto_pedido}"
                     st.markdown(f'<a href="{link_zap}" target="_blank" style="text-decoration:none;"><div style="background-color:#25D366;color:white !important;padding:15px;text-align:center;border-radius:10px;font-weight:bold;">ENVIAR PARA WHATSAPP</div></a>', unsafe_allow_html=True)
-                    st.success("Pedido salvo na planilha! Clique acima para avisar a Denise.")
+                    st.success("Pedido registrado! Clique no botão acima.")
                 else:
-                    st.error("Erro ao salvar dados. Verifique a URL do script.")
+                    st.error("Erro ao salvar. Verifique se o Apps Script permite acesso 'Anyone'.")
             else:
-                st.error("Por favor, preencha nome e WhatsApp.")
+                st.error("Preencha nome e WhatsApp, benção!")
 
 elif selected == "Rastreio":
     st.header("🚚 Rastreio")
     busca = st.text_input("Seu WhatsApp:")
-    if busca in st.session_state.status_pedidos:
-        st.success(f"Status: **{st.session_state.status_pedidos[busca]}**")
-    elif busca:
-        st.error("Nenhum pedido encontrado.")
+    if busca:
+        dados = buscar_dados_planilha()
+        pedido = next((item for item in reversed(dados) if item['whatsapp'] == busca), None)
+        if pedido:
+            st.success(f"Status do Pedido: **{pedido['status']}**")
+        else:
+            st.warning("Nenhum pedido encontrado para este número.")
 
 elif selected == "Contato":
     st.header("📞 Fale Conosco")
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("WhatsApp")
-        msg = urllib.parse.quote("Vim pelo Aplicativo, e quero mais informações")
-        link_w = f"https://api.whatsapp.com/send?phone=5519992709717&text={msg}"
+        link_w = "https://api.whatsapp.com/send?phone=5519992709717&text=Vim%20pelo%20App"
         st.markdown(f'<a href="{link_w}" target="_blank" style="text-decoration:none;"><div style="background-color:#25D366; color:white !important; padding:10px; text-align:center; border-radius:10px; font-weight:bold;">ABRIR WHATSAPP</div></a>', unsafe_allow_html=True)
     with col2:
         st.subheader("Instagram")
@@ -144,11 +153,13 @@ elif selected == "Contato":
     exibir_imagem("assets/logo.png", 180)
 
 elif selected == "Admin":
-    st.header("🔐 Admin")
+    st.header("🔐 Painel Admin")
     if st.text_input("Senha", type="password") == "denise123":
-        for zap, stat in st.session_state.status_pedidos.items():
-            st.write(f"Cliente: {zap}")
-            novo = st.selectbox("Mudar Status", ["Confirmado", "Em Preparo", "Saiu para Entrega", "Entregue"], key=zap)
-            if st.button(f"Atualizar {zap}"):
-                st.session_state.status_pedidos[zap] = novo
-                st.rerun()
+        dados = buscar_dados_planilha()
+        if not dados:
+            st.info("Nenhum pedido na planilha ainda.")
+        else:
+            for item in dados:
+                st.write(f"**Cliente:** {item['nome']} ({item['whatsapp']})")
+                st.write(f"Status Atual: {item['status']}")
+                st.write("---")
