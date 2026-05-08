@@ -67,13 +67,29 @@ selected = option_menu(
     }
 )
 
-# --- LISTA DE DOCES (Imagens 1:1) ---
-caminho_img = "assets/logo.png"
+# --- LISTA DE DOCES ATUALIZADA (Imagens 1:1) ---
+# Dica: No GitHub, salve os arquivos dentro da pasta 'assets' com esses nomes exatos.
 lista_doces = [
-    {"nome": "Brigadeiro Gourmet", "preco": 5.00, "img": caminho_img},
-    {"nome": "Bolo de Pote", "preco": 15.00, "img": caminho_img},
-    {"nome": "Copo da Felicidade", "preco": 22.00, "img": caminho_img},
-    {"nome": "Fatia de Torta", "preco": 12.00, "img": caminho_img}
+    {
+        "nome": "Trufas", 
+        "preco": 4.00, 
+        "img": "assets/trufas1.png"
+    },
+    {
+        "nome": "Cone Trufado", 
+        "preco": 8.00, 
+        "img": "assets/conetrufado1.png"
+    },
+    {
+        "nome": "Pão de Mel", 
+        "preco": 8.00, 
+        "img": "assets/paodemel1.png"
+    },
+    {
+        "nome": "Trufas (4 unidades)", 
+        "preco": 15.00, 
+        "img": "assets/trufas4unidades1.png"
+    }
 ]
 
 # --- LÓGICA DAS PÁGINAS ---
