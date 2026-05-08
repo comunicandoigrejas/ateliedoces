@@ -5,16 +5,17 @@ import os
 import urllib.parse
 import requests
 
-# Sua URL do Apps Script
-URL_PLANILHA = "https://script.google.com/macros/s/AKfycbwMZdOsNj3ffgu4vyJxASUdkckobH9sdresxItUiyj39AGmsFLRuyk-x9395F465E5PIg/exec"
+# URL do seu Apps Script (Certifique-se de que é a última versão publicada)
+URL_PLANILHA = "https://script.google.com/macros/s/AKfycbyM8IUPE7mo9ilgf5Yo2xB0JK4VZrsSnCVXLaK2Hj_lkYcNrlhbRB8zaL5IZshJdJCyxA/exec"
+
+# --- FUNÇÕES DE COMUNICAÇÃO ---
 
 def salvar_na_planilha(nome, whatsapp, pedido, total):
-    # Adicionamos a 'action': 'create'
     dados = {
         "action": "create",
-        "nome": nome,
-        "whatsapp": whatsapp,
-        "pedido": pedido,
+        "nome": nome, 
+        "whatsapp": whatsapp, 
+        "pedido": pedido, 
         "total": float(total)
     }
     try:
@@ -23,8 +24,16 @@ def salvar_na_planilha(nome, whatsapp, pedido, total):
     except:
         return False
 
+def buscar_dados_planilha():
+    try:
+        resposta = requests.get(URL_PLANILHA)
+        if resposta.status_code == 200:
+            return resposta.json()
+        return []
+    except:
+        return []
+
 def atualizar_status_na_planilha(whatsapp, novo_status):
-    # Adicionamos a 'action': 'update'
     dados = {
         "action": "update",
         "whatsapp": whatsapp,
@@ -35,10 +44,10 @@ def atualizar_status_na_planilha(whatsapp, novo_status):
         return True
     except:
         return False
+
 # --- CONFIGURAÇÕES DA PÁGINA ---
 st.set_page_config(page_title="Ateliê Doces Denise Borges", page_icon="🧁", layout="centered")
 
-# Estilização
 st.markdown("""
     <style>
     .stApp { background-color: #FFF0F5; }
@@ -49,6 +58,7 @@ st.markdown("""
 
 if 'carrinho' not in st.session_state: st.session_state.carrinho = []
 
+# --- MENU ---
 selected = option_menu(
     menu_title=None,
     options=["Início", "Cardápio", "Pedidos & Pontos", "Rastreio", "Admin"],
@@ -56,9 +66,11 @@ selected = option_menu(
     orientation="horizontal"
 )
 
+# --- LÓGICA DAS ABAS ---
+
 if selected == "Início":
     st.markdown("<h1 style='text-align: center;'>Ateliê Doces Denise Borges</h1>", unsafe_allow_html=True)
-    st.info("📖 Provai e vede que o Senhor é bom. - Salmos 34:8")
+    st.info("📖 Provai e vede que o Senhor é bom. - Salmos 34:8 (ARA)")
 
 elif selected == "Cardápio":
     lista_doces = [{"nome": "Trufas", "preco": 4.00}, {"nome": "Cone Trufado", "preco": 8.00}, {"nome": "Pão de Mel", "preco": 8.00}]
@@ -66,16 +78,17 @@ elif selected == "Cardápio":
         col1, col2 = st.columns([2, 1])
         with col1: st.write(f"**{doce['nome']}** - R$ {doce['preco']:.2f}")
         with col2:
-            if st.button(f"Adicionar", key=doce['nome']):
+            if st.button(f"Adicionar", key=f"add_{doce['nome']}"):
                 st.session_state.carrinho.append(doce)
-                st.toast(f"{doce['nome']} no carrinho!")
+                st.toast(f"{doce['nome']} adicionado!")
 
 elif selected == "Pedidos & Pontos":
-    id_cliente = st.text_input("WhatsApp (apenas números)")
+    st.header("🛒 Checkout")
+    id_cliente = st.text_input("Seu WhatsApp (números)")
     if id_cliente:
         dados = buscar_dados_planilha()
-        total_pts = sum(float(item.get('total', 0)) for item in dados if str(item.get('whatsapp')) == id_cliente)
-        st.write(f"✨ Seus Pontos: {int(total_pts)}")
+        pts = sum(float(item.get('total', 0)) for item in dados if str(item.get('whatsapp')) == id_cliente)
+        st.write(f"✨ Seus Pontos: {int(pts)}")
 
     if st.session_state.carrinho:
         total = sum(d['preco'] for d in st.session_state.carrinho)
@@ -83,53 +96,33 @@ elif selected == "Pedidos & Pontos":
         nome = st.text_input("Seu Nome")
         if st.button("Finalizar Pedido"):
             if salvar_na_planilha(nome, id_cliente, "Pedido App", total):
-                st.success("Pedido Salvo na Planilha!")
+                st.success("Pedido registrado!")
+                st.session_state.carrinho = []
 
 elif selected == "Rastreio":
-    busca = st.text_input("WhatsApp para Rastrear:")
+    st.header("🚚 Rastreio")
+    busca = st.text_input("WhatsApp cadastrado:")
     if busca:
         dados = buscar_dados_planilha()
         pedido = next((item for item in reversed(dados) if str(item.get('whatsapp')) == busca), None)
         if pedido:
             st.success(f"Status: **{pedido.get('status')}**")
+        else:
+            st.warning("Nenhum pedido encontrado.")
 
 elif selected == "Admin":
-    st.header("🔐 Painel Admin")
+    st.header("🔐 Admin")
     if st.text_input("Senha", type="password") == "denise123":
         dados = buscar_dados_planilha()
-        if not dados:
-            st.info("Nenhum pedido encontrado na planilha.")
-        else:
-            # Usamos enumerate para ter um número único (i) para cada pedido
-            for i, item in enumerate(dados):
-                nome_cliente = item.get('nome', 'Cliente sem nome')
-                whatsapp_cliente = item.get('whatsapp', 'Sem Zap')
-                status_atual = item.get('status', 'Aguardando Confirmação')
+        for i, item in enumerate(dados):
+            whatsapp = item.get('whatsapp')
+            with st.expander(f"Cliente: {item.get('nome')} ({whatsapp})"):
+                opcoes = ["Aguardando Confirmação", "Confirmado", "Em Preparo", "Entregue"]
+                status_atual = item.get('status')
+                idx = opcoes.index(status_atual) if status_atual in opcoes else 0
                 
-                # Criamos uma chave única combinando o Zap com o índice da linha
-                chave_unica = f"{whatsapp_cliente}_{i}"
-                
-                with st.expander(f"Pedido {i+1}: {nome_cliente}"):
-                    st.write(f"**WhatsApp:** {whatsapp_cliente}")
-                    st.write(f"**Pedido:** {item.get('pedido', 'Não informado')}")
-                    
-                    # Lista de opções para o Selectbox
-                    opcoes = ["Aguardando Confirmação", "Confirmado", "Em Preparo", "Saiu para Entrega", "Entregue"]
-                    
-                    # Tenta marcar a opção atual como padrão
-                    indice_padrao = opcoes.index(status_atual) if status_atual in opcoes else 0
-                    
-                    novo = st.selectbox(
-                        "Mudar Status", 
-                        opcoes, 
-                        index=indice_padrao,
-                        key=f"sel_{chave_unica}" # Chave Única garantida!
-                    )
-                    
-                    if st.button("Atualizar Status", key=f"btn_{chave_unica}"):
-                        if atualizar_status_na_planilha(whatsapp_cliente, novo):
-                            st.success(f"Status de {nome_cliente} atualizado!")
-                            st.rerun()
-                        else:
-                            st.error("Erro ao atualizar na planilha.")
-                st.write("---")
+                novo = st.selectbox("Mudar Status", opcoes, index=idx, key=f"sel_{whatsapp}_{i}")
+                if st.button("Atualizar", key=f"btn_{whatsapp}_{i}"):
+                    if atualizar_status_na_planilha(whatsapp, novo):
+                        st.success("Status Atualizado!")
+                        st.rerun()
