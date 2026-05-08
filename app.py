@@ -5,7 +5,7 @@ import os
 import urllib.parse
 import requests
 
-# Substitua pela URL que você copiou do Google
+# URL do Apps Script fornecida
 URL_PLANILHA = "https://script.google.com/macros/s/AKfycbx0jYmFYArWmPBfOXYZDcvRKfF8BmzNF3S1U-mSr_WAHsMN71tLztUfMBbfs76Eaz44zA/exec"
 
 def salvar_na_planilha(nome, whatsapp, pedido, total):
@@ -16,52 +16,29 @@ def salvar_na_planilha(nome, whatsapp, pedido, total):
         "total": float(total)
     }
     try:
-        # Envia os dados para o Google Sheets
         requests.post(URL_PLANILHA, json=dados)
         return True
     except:
         return False
+
 # --- CONFIGURAÇÕES DA PÁGINA ---
 st.set_page_config(page_title="Ateliê Doces Denise Borges", page_icon="🧁", layout="centered")
 
-# --- ESTILIZAÇÃO CSS (Fontes Roxas no Geral e Brancas nos Botões) ---
+# --- ESTILIZAÇÃO CSS (Fontes Roxas e Botões com Fonte Branca) ---
 st.markdown("""
     <style>
-    .stApp {
-        background-color: #FFF0F5;
-    }
-    
-    /* Texto Geral em Roxo */
+    .stApp { background-color: #FFF0F5; }
     h1, h2, h3, h4, h5, h6, p, span, label, .stMarkdown {
         color: #4B0082 !important;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
-
-    /* FORÇANDO FONTE BRANCA NOS BOTÕES (Padrão e Link) */
-    div.stButton > button, 
-    div.stButton > button p, 
-    div.stButton > button span,
-    .stLinkButton a,
-    .stLinkButton a p,
-    .stLinkButton a span {
+    div.stButton > button, div.stButton > button p, div.stButton > button span,
+    .stLinkButton a, .stLinkButton a p, .stLinkButton a span {
         color: white !important;
     }
-
-    /* Cores dos Botões Padrão */
-    div.stButton > button {
-        background-color: #8E44AD; 
-        border-radius: 15px;
-        font-weight: bold;
-    }
-    
-    div.stButton > button:hover {
-        background-color: #2980B9;
-    }
-
-    /* Ajuste para inputs não ficarem brancos */
-    .stTextInput input {
-        color: #4B0082 !important;
-    }
+    div.stButton > button { background-color: #8E44AD; border-radius: 15px; font-weight: bold; }
+    div.stButton > button:hover { background-color: #2980B9; }
+    .stTextInput input { color: #4B0082 !important; }
     </style>
     """, unsafe_allow_html=True)
 
@@ -71,12 +48,9 @@ def exibir_imagem(caminho, largura):
     else:
         st.image("https://via.placeholder.com/400x400?text=Doce+Abençoado", width=largura)
 
-if 'carrinho' not in st.session_state:
-    st.session_state.carrinho = []
-if 'pontos' not in st.session_state:
-    st.session_state.pontos = {}
-if 'status_pedidos' not in st.session_state:
-    st.session_state.status_pedidos = {}
+if 'carrinho' not in st.session_state: st.session_state.carrinho = []
+if 'pontos' not in st.session_state: st.session_state.pontos = {}
+if 'status_pedidos' not in st.session_state: st.session_state.status_pedidos = {}
 
 # --- MENU ---
 selected = option_menu(
@@ -100,19 +74,15 @@ lista_doces = [
 
 if selected == "Início":
     col_l, col_c, col_r = st.columns([1, 2, 1])
-    with col_c:
-        exibir_imagem("assets/logo.png", 220) 
+    with col_c: exibir_imagem("assets/logo.png", 220) 
     st.markdown("<h1 style='text-align: center;'>Ateliê Doces Denise Borges</h1>", unsafe_allow_html=True)
-    st.write("---")
-    st.subheader("Bem-vindo(a), abençoado(a)!")
     st.info("📖 'Provai e vede que o Senhor é bom; bem-aventurado o homem que nele se refugia.' - Salmos 34:8 (ARA)")
 
 elif selected == "Cardápio":
     st.header("🍰 Nossas Delícias")
     for doce in lista_doces:
         c1, c2 = st.columns([1, 2])
-        with c1:
-            exibir_imagem(doce["img"], 140) 
+        with c1: exibir_imagem(doce["img"], 140) 
         with c2:
             st.subheader(doce["nome"])
             st.write(f"Valor: **R$ {doce['preco']:.2f}**")
@@ -138,10 +108,20 @@ elif selected == "Pedidos & Pontos":
         st.markdown(f"### **Total: R$ {total_geral:.2f}**")
         
         nome_contato = st.text_input("Seu Nome")
-  File "/mount/src/ateliedoces/app.py", line 142
-      if nome_contato and id_cliente:
-      ^
-IndentationError: expected an indented block after 'if' statement on line 141
+        if st.button("💬 Finalizar Pedido"):
+            if nome_contato and id_cliente:
+                # Aqui foi corrigida a indentação (espaços à esquerda)
+                sucesso = salvar_na_planilha(nome_contato, id_cliente, str(resumo.index.tolist()), total_geral)
+                if sucesso:
+                    texto_pedido = urllib.parse.quote(f"A Paz do Senhor, Denise! Pedido de *{nome_contato}* no valor de *R$ {total_geral:.2f}*.")
+                    link_zap = f"https://api.whatsapp.com/send?phone=5519992709717&text={texto_pedido}"
+                    st.markdown(f'<a href="{link_zap}" target="_blank" style="text-decoration:none;"><div style="background-color:#25D366;color:white !important;padding:15px;text-align:center;border-radius:10px;font-weight:bold;">ENVIAR PARA WHATSAPP</div></a>', unsafe_allow_html=True)
+                    st.success("Pedido salvo na planilha! Clique acima para avisar a Denise.")
+                else:
+                    st.error("Erro ao salvar dados. Verifique a URL do script.")
+            else:
+                st.error("Por favor, preencha nome e WhatsApp.")
+
 elif selected == "Rastreio":
     st.header("🚚 Rastreio")
     busca = st.text_input("Seu WhatsApp:")
@@ -152,24 +132,15 @@ elif selected == "Rastreio":
 
 elif selected == "Contato":
     st.header("📞 Fale Conosco")
-    st.write("Estamos à disposição para atender você com todo carinho!")
     col1, col2 = st.columns(2)
     with col1:
         st.subheader("WhatsApp")
-        msg_padrao = urllib.parse.quote("Vim pelo Aplicativo, e quero mais informações")
-        link_whatsapp = f"https://api.whatsapp.com/send?phone=5519992709717&text={msg_padrao}"
-        st.markdown(f'''
-            <a href="{link_whatsapp}" target="_blank" style="text-decoration:none;">
-                <div style="background-color:#25D366; color:white !important; padding:10px; 
-                text-align:center; border-radius:10px; font-weight:bold;">
-                    ABRIR WHATSAPP
-                </div>
-            </a>
-        ''', unsafe_allow_html=True)
+        msg = urllib.parse.quote("Vim pelo Aplicativo, e quero mais informações")
+        link_w = f"https://api.whatsapp.com/send?phone=5519992709717&text={msg}"
+        st.markdown(f'<a href="{link_w}" target="_blank" style="text-decoration:none;"><div style="background-color:#25D366; color:white !important; padding:10px; text-align:center; border-radius:10px; font-weight:bold;">ABRIR WHATSAPP</div></a>', unsafe_allow_html=True)
     with col2:
         st.subheader("Instagram")
         st.link_button("Seguir no Instagram", "https://www.instagram.com/deniseborges.doces")
-    st.write("---")
     exibir_imagem("assets/logo.png", 180)
 
 elif selected == "Admin":
