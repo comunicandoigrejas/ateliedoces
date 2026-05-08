@@ -9,30 +9,32 @@ import requests
 URL_PLANILHA = "https://script.google.com/macros/s/AKfycbwckt7_M0MlUrvp0G19HUDsJVWweCVZLXjE8wk7s7wXt5OQtud-TYng8Dx6vhRgxAyKzQ/exec"
 
 def salvar_na_planilha(nome, whatsapp, pedido, total):
-    dados = {"action": "create", "nome": nome, "whatsapp": whatsapp, "pedido": pedido, "total": float(total)}
+    # Adicionamos a 'action': 'create'
+    dados = {
+        "action": "create",
+        "nome": nome,
+        "whatsapp": whatsapp,
+        "pedido": pedido,
+        "total": float(total)
+    }
     try:
         requests.post(URL_PLANILHA, json=dados)
         return True
     except:
         return False
-
-def buscar_dados_planilha():
-    try:
-        resposta = requests.get(URL_PLANILHA)
-        if resposta.status_code == 200:
-            return resposta.json()
-        return []
-    except:
-        return []
 
 def atualizar_status_na_planilha(whatsapp, novo_status):
-    dados = {"action": "update", "whatsapp": whatsapp, "status": novo_status}
+    # Adicionamos a 'action': 'update'
+    dados = {
+        "action": "update",
+        "whatsapp": whatsapp,
+        "status": novo_status
+    }
     try:
         requests.post(URL_PLANILHA, json=dados)
         return True
     except:
         return False
-
 # --- CONFIGURAÇÕES DA PÁGINA ---
 st.set_page_config(page_title="Ateliê Doces Denise Borges", page_icon="🧁", layout="centered")
 
