@@ -5,8 +5,8 @@ import os
 import urllib.parse
 import requests
 
-# URL do seu Apps Script (Certifique-se de ser a versão "Anyone")
-URL_PLANILHA = "https://script.google.com/macros/s/AKfycbz52d2MMb0LNxZwfHDYKdX_WBlEhr3kkluOnRXrSW9b9vcSSLnK7OaQ60QQxzJPbnxKuA/exec"
+# URL do seu Apps Script
+URL_PLANILHA = "https://script.google.com/macros/s/AKfycbyM8IUPE7mo9ilgf5Yo2xB0JK4VZrsSnCVXLaK2Hj_lkYcNrlhbRB8zaL5IZshJdJCyxA/exec"
 
 # --- FUNÇÕES DE COMUNICAÇÃO ---
 def salvar_na_planilha(nome, whatsapp, pedido, total):
@@ -23,7 +23,6 @@ def buscar_dados_planilha():
     except: return []
 
 def atualizar_status_na_planilha(whatsapp, novo_status):
-    # IMPORTANTE: Enviamos a ação 'update'
     dados = {"action": "update", "whatsapp": whatsapp, "status": novo_status}
     try:
         requests.post(URL_PLANILHA, json=dados)
@@ -57,6 +56,16 @@ selected = option_menu(
     orientation="horizontal"
 )
 
+# --- TRATAMENTO DE ERRO DE NÚMERO ---
+def limpar_valor(valor):
+    try:
+        if not valor or valor == "": return 0.0
+        # Remove R$, espaços e troca vírgula por ponto
+        v = str(valor).replace('R$', '').replace(' ', '').replace(',', '.').strip()
+        return float(v)
+    except:
+        return 0.0
+
 # --- ABAS ---
 if selected == "Início":
     col_l, col_c, col_r = st.columns([1, 2, 1])
@@ -70,6 +79,7 @@ elif selected == "Cardápio":
         {"nome": "Trufas", "preco": 4.00, "img": "assets/trufas1.png"},
         {"nome": "Cone Trufado", "preco": 8.00, "img": "assets/conetrufado1.png"},
         {"nome": "Pão de Mel", "preco": 8.00, "img": "assets/paodemel1.png"}
+        {"nome": "Kit 4 Trufas", "preco": 15.00, "img": "assets/trufas4unidades1.png"}
     ]
     for doce in lista_doces:
         c1, c2 = st.columns([1, 2])
@@ -86,16 +96,18 @@ elif selected == "Pedidos & Pontos":
     id_cliente = st.text_input("WhatsApp (apenas números)")
     if id_cliente:
         dados = buscar_dados_planilha()
-        pts = sum(float(item.get('total', 0)) for item in dados if str(item.get('whatsapp')) == id_cliente)
+        # USANDO A FUNÇÃO limpar_valor PARA NÃO DAR ERRO
+        pts = sum(limpar_valor(item.get('total', 0)) for item in dados if str(item.get('whatsapp')) == id_cliente)
         st.write(f"✨ **Seus Pontos:** {int(pts)}")
 
     if st.session_state.carrinho:
         total = sum(d['preco'] for d in st.session_state.carrinho)
+        st.write(f"### Total: R$ {total:.2f}")
         nome = st.text_input("Seu Nome")
         if st.button("Finalizar Pedido"):
             resumo = ", ".join([d['nome'] for d in st.session_state.carrinho])
             if salvar_na_planilha(nome, id_cliente, resumo, total):
-                st.success("Pedido Salvo! Avise a Denise.")
+                st.success("Pedido Salvo!")
                 st.session_state.carrinho = []
 
 elif selected == "Rastreio":
@@ -114,11 +126,11 @@ elif selected == "Admin":
             whatsapp = str(item.get('whatsapp'))
             with st.expander(f"Pedido: {item.get('nome')} ({whatsapp})"):
                 opcoes = ["Aguardando Confirmação", "Confirmado", "Em Preparo", "Entregue"]
-                status_atual = item.get('status')
+                status_atual = item.get('status', "Aguardando Confirmação")
                 idx = opcoes.index(status_atual) if status_atual in opcoes else 0
                 
                 novo = st.selectbox("Mudar Status", opcoes, index=idx, key=f"sel_{whatsapp}_{i}")
                 if st.button("Gravar", key=f"btn_{whatsapp}_{i}"):
                     if atualizar_status_na_planilha(whatsapp, novo):
-                        st.success("Atualizado!")
+                        st.success("Status Atualizado!")
                         st.rerun()
