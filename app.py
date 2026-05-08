@@ -3,7 +3,24 @@ from streamlit_option_menu import option_menu
 import pandas as pd
 import os
 import urllib.parse
+import requests
 
+# Substitua pela URL que você copiou do Google
+URL_PLANILHA = "https://script.google.com/macros/s/AKfycbx0jYmFYArWmPBfOXYZDcvRKfF8BmzNF3S1U-mSr_WAHsMN71tLztUfMBbfs76Eaz44zA/exec"
+
+def salvar_na_planilha(nome, whatsapp, pedido, total):
+    dados = {
+        "nome": nome,
+        "whatsapp": whatsapp,
+        "pedido": pedido,
+        "total": float(total)
+    }
+    try:
+        # Envia os dados para o Google Sheets
+        requests.post(URL_PLANILHA, json=dados)
+        return True
+    except:
+        return False
 # --- CONFIGURAÇÕES DA PÁGINA ---
 st.set_page_config(page_title="Ateliê Doces Denise Borges", page_icon="🧁", layout="centered")
 
