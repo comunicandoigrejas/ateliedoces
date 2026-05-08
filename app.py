@@ -7,46 +7,53 @@ import urllib.parse
 # --- CONFIGURAÇÕES DA PÁGINA ---
 st.set_page_config(page_title="Ateliê Doces Denise Borges", page_icon="🧁", layout="centered")
 
-# --- ESTILIZAÇÃO CSS (Fontes Roxas e Fundo Rosa) ---
+# --- ESTILIZAÇÃO CSS (Fontes Roxas no Geral e Brancas nos Botões) ---
 st.markdown("""
     <style>
     .stApp {
         background-color: #FFF0F5;
     }
     
-    /* Fontes em Roxo Escuro para melhor visibilidade */
+    /* Texto Geral em Roxo */
     h1, h2, h3, h4, h5, h6, p, span, label, .stMarkdown {
         color: #4B0082 !important;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    .stTextInput label, .stSelectbox label {
-        color: #4B0082 !important;
-        font-weight: bold;
+    /* FORÇANDO FONTE BRANCA NOS BOTÕES (Padrão e Link) */
+    div.stButton > button, 
+    div.stButton > button p, 
+    div.stButton > button span,
+    .stLinkButton a,
+    .stLinkButton a p,
+    .stLinkButton a span {
+        color: white !important;
     }
 
+    /* Cores dos Botões Padrão */
     div.stButton > button {
-        background-color: #8E44AD; /* Roxo da Paleta */
-        color: white !important;
+        background-color: #8E44AD; 
         border-radius: 15px;
         font-weight: bold;
     }
     
     div.stButton > button:hover {
-        background-color: #2980B9; /* Azul da Paleta */
-        color: white !important;
+        background-color: #2980B9;
+    }
+
+    /* Ajuste para inputs não ficarem brancos */
+    .stTextInput input {
+        color: #4B0082 !important;
     }
     </style>
     """, unsafe_allow_html=True)
 
-# --- FUNÇÃO PARA EXIBIÇÃO DE IMAGEM SEGURA ---
 def exibir_imagem(caminho, largura):
     if os.path.exists(caminho):
         st.image(caminho, width=largura)
     else:
         st.image("https://via.placeholder.com/400x400?text=Doce+Abençoado", width=largura)
 
-# --- INICIALIZAÇÃO DE DADOS ---
 if 'carrinho' not in st.session_state:
     st.session_state.carrinho = []
 if 'pontos' not in st.session_state:
@@ -54,7 +61,7 @@ if 'pontos' not in st.session_state:
 if 'status_pedidos' not in st.session_state:
     st.session_state.status_pedidos = {}
 
-# --- MENU SUPERIOR ATUALIZADO (Incluindo 'Contato') ---
+# --- MENU ---
 selected = option_menu(
     menu_title=None,
     options=["Início", "Cardápio", "Pedidos & Pontos", "Rastreio", "Contato", "Admin"],
@@ -67,7 +74,6 @@ selected = option_menu(
     }
 )
 
-# --- CARDÁPIO ATUALIZADO ---
 lista_doces = [
     {"nome": "Trufas", "preco": 4.00, "img": "assets/trufas1.png"},
     {"nome": "Cone Trufado", "preco": 8.00, "img": "assets/conetrufado1.png"},
@@ -75,17 +81,13 @@ lista_doces = [
     {"nome": "Trufas (4 unidades)", "preco": 15.00, "img": "assets/trufas4unidades1.png"}
 ]
 
-# --- LÓGICA DAS PÁGINAS ---
-
 if selected == "Início":
     col_l, col_c, col_r = st.columns([1, 2, 1])
     with col_c:
         exibir_imagem("assets/logo.png", 220) 
-    
     st.markdown("<h1 style='text-align: center;'>Ateliê Doces Denise Borges</h1>", unsafe_allow_html=True)
     st.write("---")
     st.subheader("Bem-vindo(a), abençoado(a)!")
-    st.write("Adoçando sua vida com o amor de Cristo.")
     st.info("📖 'Provai e vede que o Senhor é bom; bem-aventurado o homem que nele se refugia.' - Salmos 34:8 (ARA)")
 
 elif selected == "Cardápio":
@@ -106,7 +108,7 @@ elif selected == "Pedidos & Pontos":
     id_cliente = st.text_input("WhatsApp (apenas números)")
     if id_cliente:
         pts = st.session_state.pontos.get(id_cliente, 0)
-        st.write(f"✨ **Seus Pontos Acumulados:** {pts}")
+        st.write(f"✨ **Seus Pontos:** {pts}")
 
     if not st.session_state.carrinho:
         st.warning("O carrinho está vazio, irmão.")
@@ -119,13 +121,13 @@ elif selected == "Pedidos & Pontos":
         st.markdown(f"### **Total: R$ {total_geral:.2f}**")
         
         nome_contato = st.text_input("Seu Nome")
-        if st.button("💬 Solicitar Pagamento via WhatsApp"):
+        if st.button("💬 Finalizar Pedido no WhatsApp"):
             if nome_contato and id_cliente:
                 st.session_state.pontos[id_cliente] = pts + int(total_geral)
                 st.session_state.status_pedidos[id_cliente] = "Aguardando Confirmação"
-                texto = f"A Paz do Senhor, Denise! Pedido de *{nome_contato}* no valor de *R$ {total_geral:.2f}*."
-                link_zap = f"https://api.whatsapp.com/send?phone=5519992709717&text={texto}"
-                st.markdown(f'<a href="{link_zap}" target="_blank" style="text-decoration:none;"><div style="background-color:#25D366;color:white;padding:15px;text-align:center;border-radius:10px;font-weight:bold;">FINALIZAR NO WHATSAPP</div></a>', unsafe_allow_html=True)
+                texto_pedido = urllib.parse.quote(f"A Paz do Senhor, Denise! Pedido de *{nome_contato}* no valor de *R$ {total_geral:.2f}*.")
+                link_zap_pedido = f"https://api.whatsapp.com/send?phone=5519992709717&text={texto_pedido}"
+                st.markdown(f'<a href="{link_zap_pedido}" target="_blank" style="text-decoration:none;"><div style="background-color:#25D366;color:white !important;padding:15px;text-align:center;border-radius:10px;font-weight:bold;">ENVIAR PEDIDO (FONTE BRANCA)</div></a>', unsafe_allow_html=True)
             else:
                 st.error("Preencha os dados, benção!")
 
@@ -137,28 +139,27 @@ elif selected == "Rastreio":
     elif busca:
         st.error("Nenhum pedido encontrado.")
 
-# --- NOVA ABA: CONTATO ---
 elif selected == "Contato":
     st.header("📞 Fale Conosco")
     st.write("Estamos à disposição para atender você com todo carinho!")
-    
     col1, col2 = st.columns(2)
-    
     with col1:
         st.subheader("WhatsApp")
-        st.write("Dúvidas ou encomendas personalizadas?")
-        st.link_button("Ir para o WhatsApp", "https://wa.me/5519992709717")
-        
+        msg_padrao = urllib.parse.quote("Vim pelo Aplicativo, e quero mais informações")
+        link_whatsapp = f"https://api.whatsapp.com/send?phone=5519992709717&text={msg_padrao}"
+        st.markdown(f'''
+            <a href="{link_whatsapp}" target="_blank" style="text-decoration:none;">
+                <div style="background-color:#25D366; color:white !important; padding:10px; 
+                text-align:center; border-radius:10px; font-weight:bold;">
+                    ABRIR WHATSAPP
+                </div>
+            </a>
+        ''', unsafe_allow_html=True)
     with col2:
         st.subheader("Instagram")
-        st.write("Siga-nos e veja nossas novidades diárias!")
         st.link_button("Seguir no Instagram", "https://www.instagram.com/deniseborges.doces")
-    
     st.write("---")
-    # Imagem do logo no final para reforçar a marca (1:1)
-    c_l, c_c, c_r = st.columns([1, 1.5, 1])
-    with c_c:
-        exibir_imagem("assets/logo.png", 180)
+    exibir_imagem("assets/logo.png", 180)
 
 elif selected == "Admin":
     st.header("🔐 Admin")
