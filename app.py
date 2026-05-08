@@ -7,36 +7,33 @@ import urllib.parse
 # --- CONFIGURAÇÕES DA PÁGINA ---
 st.set_page_config(page_title="Ateliê Doces Denise Borges", page_icon="🧁", layout="centered")
 
-# --- ESTILIZAÇÃO CSS (Foco em Fontes Roxas e Visibilidade) ---
+# --- ESTILIZAÇÃO CSS (Fontes Roxas e Fundo Rosa) ---
 st.markdown("""
     <style>
-    /* Fundo Rosa Claro conforme solicitado */
     .stApp {
         background-color: #FFF0F5;
     }
     
-    /* FORÇANDO FONTE ROXA EM TUDO */
+    /* Fontes em Roxo Escuro para melhor visibilidade */
     h1, h2, h3, h4, h5, h6, p, span, label, .stMarkdown {
-        color: #4B0082 !important; /* Roxo Escuro (Indigo) */
+        color: #4B0082 !important;
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     }
 
-    /* Ajuste específico para labels de campos de entrada */
     .stTextInput label, .stSelectbox label {
         color: #4B0082 !important;
         font-weight: bold;
     }
 
-    /* Estilização dos botões (Paleta: Roxo e Azul) */
     div.stButton > button {
-        background-color: #8E44AD; /* Roxo */
-        color: white !important; /* Texto do botão sempre branco para contraste */
+        background-color: #8E44AD; /* Roxo da Paleta */
+        color: white !important;
         border-radius: 15px;
         font-weight: bold;
     }
     
     div.stButton > button:hover {
-        background-color: #2980B9; /* Azul no hover */
+        background-color: #2980B9; /* Azul da Paleta */
         color: white !important;
     }
     </style>
@@ -57,20 +54,20 @@ if 'pontos' not in st.session_state:
 if 'status_pedidos' not in st.session_state:
     st.session_state.status_pedidos = {}
 
-# --- MENU SUPERIOR ---
+# --- MENU SUPERIOR ATUALIZADO (Incluindo 'Contato') ---
 selected = option_menu(
     menu_title=None,
-    options=["Início", "Cardápio", "Pedidos & Pontos", "Rastreio", "Admin"],
-    icons=["house", "book", "cart4", "truck", "shield-lock"],
+    options=["Início", "Cardápio", "Pedidos & Pontos", "Rastreio", "Contato", "Admin"],
+    icons=["house", "book", "cart4", "truck", "chat-dots", "shield-lock"],
     orientation="horizontal",
     styles={
         "container": {"background-color": "#ffffff"},
-        "nav-link": {"color": "#4B0082"},
+        "nav-link": {"color": "#4B0082", "font-size": "13px"},
         "nav-link-selected": {"background-color": "#FFB6C1", "color": "black"},
     }
 )
 
-# --- NOVO CARDÁPIO ATUALIZADO (Sequência solicitada) ---
+# --- CARDÁPIO ATUALIZADO ---
 lista_doces = [
     {"nome": "Trufas", "preco": 4.00, "img": "assets/trufas1.png"},
     {"nome": "Cone Trufado", "preco": 8.00, "img": "assets/conetrufado1.png"},
@@ -88,8 +85,7 @@ if selected == "Início":
     st.markdown("<h1 style='text-align: center;'>Ateliê Doces Denise Borges</h1>", unsafe_allow_html=True)
     st.write("---")
     st.subheader("Bem-vindo(a), abençoado(a)!")
-    st.write("Doces feitos com amor para a glória de Deus.")
-    # Versão ARA
+    st.write("Adoçando sua vida com o amor de Cristo.")
     st.info("📖 'Provai e vede que o Senhor é bom; bem-aventurado o homem que nele se refugia.' - Salmos 34:8 (ARA)")
 
 elif selected == "Cardápio":
@@ -97,24 +93,23 @@ elif selected == "Cardápio":
     for doce in lista_doces:
         c1, c2 = st.columns([1, 2])
         with c1:
-            exibir_imagem(doce["img"], 140) # Imagens 1:1
+            exibir_imagem(doce["img"], 140) 
         with c2:
             st.subheader(doce["nome"])
             st.write(f"Valor: **R$ {doce['preco']:.2f}**")
             if st.button(f"Adicionar {doce['nome']}", key=doce['nome']):
                 st.session_state.carrinho.append(doce)
-                st.toast(f"{doce['nome']} na cesta!", icon="🧁")
+                st.toast(f"{doce['nome']} adicionado!")
 
 elif selected == "Pedidos & Pontos":
     st.header("🛒 Seu Pedido")
-    id_cliente = st.text_input("WhatsApp (ex: 19992709717)")
-    
+    id_cliente = st.text_input("WhatsApp (apenas números)")
     if id_cliente:
         pts = st.session_state.pontos.get(id_cliente, 0)
-        st.write(f"✨ **Seus Pontos:** {pts}")
+        st.write(f"✨ **Seus Pontos Acumulados:** {pts}")
 
     if not st.session_state.carrinho:
-        st.warning("Seu carrinho está vazio, irmão.")
+        st.warning("O carrinho está vazio, irmão.")
     else:
         df_cart = pd.DataFrame(st.session_state.carrinho)
         resumo = df_cart.groupby('nome').agg({'preco': ['count', 'sum']})
@@ -128,24 +123,45 @@ elif selected == "Pedidos & Pontos":
             if nome_contato and id_cliente:
                 st.session_state.pontos[id_cliente] = pts + int(total_geral)
                 st.session_state.status_pedidos[id_cliente] = "Aguardando Confirmação"
-                
-                texto = f"A Paz do Senhor, Denise! Pedido de *{nome_contato}* no valor de *R$ {total_geral:.2f}*. Pode me enviar o link de pagamento?"
+                texto = f"A Paz do Senhor, Denise! Pedido de *{nome_contato}* no valor de *R$ {total_geral:.2f}*."
                 link_zap = f"https://api.whatsapp.com/send?phone=5519992709717&text={texto}"
-                st.markdown(f'<a href="{link_zap}" target="_blank" style="text-decoration:none;"><div style="background-color:#25D366;color:white;padding:15px;text-align:center;border-radius:10px;font-weight:bold;">SOLICITAR PAGAMENTO (WHATSAPP)</div></a>', unsafe_allow_html=True)
+                st.markdown(f'<a href="{link_zap}" target="_blank" style="text-decoration:none;"><div style="background-color:#25D366;color:white;padding:15px;text-align:center;border-radius:10px;font-weight:bold;">FINALIZAR NO WHATSAPP</div></a>', unsafe_allow_html=True)
             else:
-                st.error("Preencha o nome e WhatsApp, benção!")
+                st.error("Preencha os dados, benção!")
 
 elif selected == "Rastreio":
-    st.header("🚚 Acompanhe seu Pedido")
+    st.header("🚚 Rastreio")
     busca = st.text_input("Seu WhatsApp:")
     if busca in st.session_state.status_pedidos:
-        status = st.session_state.status_pedidos[busca]
-        st.success(f"Status: **{status}**")
+        st.success(f"Status: **{st.session_state.status_pedidos[busca]}**")
     elif busca:
         st.error("Nenhum pedido encontrado.")
 
+# --- NOVA ABA: CONTATO ---
+elif selected == "Contato":
+    st.header("📞 Fale Conosco")
+    st.write("Estamos à disposição para atender você com todo carinho!")
+    
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.subheader("WhatsApp")
+        st.write("Dúvidas ou encomendas personalizadas?")
+        st.link_button("Ir para o WhatsApp", "https://wa.me/5519992709717")
+        
+    with col2:
+        st.subheader("Instagram")
+        st.write("Siga-nos e veja nossas novidades diárias!")
+        st.link_button("Seguir no Instagram", "https://www.instagram.com/deniseborges.doces")
+    
+    st.write("---")
+    # Imagem do logo no final para reforçar a marca (1:1)
+    c_l, c_c, c_r = st.columns([1, 1.5, 1])
+    with c_c:
+        exibir_imagem("assets/logo.png", 180)
+
 elif selected == "Admin":
-    st.header("🔐 Área Administrativa")
+    st.header("🔐 Admin")
     if st.text_input("Senha", type="password") == "denise123":
         for zap, stat in st.session_state.status_pedidos.items():
             st.write(f"Cliente: {zap}")
