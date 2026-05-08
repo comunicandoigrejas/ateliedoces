@@ -138,27 +138,10 @@ elif selected == "Pedidos & Pontos":
         st.markdown(f"### **Total: R$ {total_geral:.2f}**")
         
         nome_contato = st.text_input("Seu Nome")
-    if st.button("💬 Finalizar Pedido no WhatsApp"):
-    if nome_contato and id_cliente:
-        # Tenta salvar na planilha antes de abrir o Zap
-        sucesso = salvar_na_planilha(nome_contato, id_cliente, str(resumo.index.tolist()), total_geral)
-        
-        if sucesso:
-            # Lógica do WhatsApp (conforme já fizemos)
-            texto_pedido = urllib.parse.quote(f"A Paz do Senhor, Denise! Pedido de *{nome_contato}* no valor de *R$ {total_geral:.2f}*.")
-            link_zap = f"https://api.whatsapp.com/send?phone=5519992709717&text={texto_pedido}"
-            
-            st.markdown(f'''
-                <a href="{link_zap}" target="_blank" style="text-decoration:none;">
-                    <div style="background-color:#25D366;color:white !important;padding:15px;text-align:center;border-radius:10px;font-weight:bold;">
-                        ENVIAR PEDIDO E SALVAR
-                    </div>
-                </a>
-            ''', unsafe_allow_html=True)
-            st.success("Pedido registrado na planilha e pronto para enviar!")
-        else:
-            st.error("Erro ao salvar os dados. Verifique a conexão.")
-
+  File "/mount/src/ateliedoces/app.py", line 142
+      if nome_contato and id_cliente:
+      ^
+IndentationError: expected an indented block after 'if' statement on line 141
 elif selected == "Rastreio":
     st.header("🚚 Rastreio")
     busca = st.text_input("Seu WhatsApp:")
