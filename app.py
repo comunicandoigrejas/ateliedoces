@@ -92,16 +92,42 @@ elif selected == "Rastreio":
             st.success(f"Status: **{pedido.get('status')}**")
 
 elif selected == "Admin":
+    st.header("🔐 Painel Admin")
     if st.text_input("Senha", type="password") == "denise123":
         dados = buscar_dados_planilha()
         if not dados:
             st.info("Nenhum pedido encontrado na planilha.")
-        for item in dados:
-            nome_cliente = item.get('nome', 'Cliente sem nome')
-            whatsapp_cliente = item.get('whatsapp', 'Sem Zap')
-            with st.expander(f"Cliente: {nome_cliente}"):
-                novo = st.selectbox("Mudar Status", ["Aguardando Confirmação", "Confirmado", "Em Preparo", "Entregue"], key=whatsapp_cliente)
-                if st.button("Atualizar Status", key=f"btn_{whatsapp_cliente}"):
-                    if atualizar_status_na_planilha(whatsapp_cliente, novo):
-                        st.success("Atualizado!")
-                        st.rerun()
+        else:
+            # Usamos enumerate para ter um número único (i) para cada pedido
+            for i, item in enumerate(dados):
+                nome_cliente = item.get('nome', 'Cliente sem nome')
+                whatsapp_cliente = item.get('whatsapp', 'Sem Zap')
+                status_atual = item.get('status', 'Aguardando Confirmação')
+                
+                # Criamos uma chave única combinando o Zap com o índice da linha
+                chave_unica = f"{whatsapp_cliente}_{i}"
+                
+                with st.expander(f"Pedido {i+1}: {nome_cliente}"):
+                    st.write(f"**WhatsApp:** {whatsapp_cliente}")
+                    st.write(f"**Pedido:** {item.get('pedido', 'Não informado')}")
+                    
+                    # Lista de opções para o Selectbox
+                    opcoes = ["Aguardando Confirmação", "Confirmado", "Em Preparo", "Saiu para Entrega", "Entregue"]
+                    
+                    # Tenta marcar a opção atual como padrão
+                    indice_padrao = opcoes.index(status_atual) if status_atual in opcoes else 0
+                    
+                    novo = st.selectbox(
+                        "Mudar Status", 
+                        opcoes, 
+                        index=indice_padrao,
+                        key=f"sel_{chave_unica}" # Chave Única garantida!
+                    )
+                    
+                    if st.button("Atualizar Status", key=f"btn_{chave_unica}"):
+                        if atualizar_status_na_planilha(whatsapp_cliente, novo):
+                            st.success(f"Status de {nome_cliente} atualizado!")
+                            st.rerun()
+                        else:
+                            st.error("Erro ao atualizar na planilha.")
+                st.write("---")
