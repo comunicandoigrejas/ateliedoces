@@ -70,35 +70,49 @@ if st.session_state.usuario is None:
     
     col_entrar, col_novo = st.columns(2)
     
-    with col_entrar:
+   with col_entrar:
         if st.button("Entrar"):
             if zap_login:
                 try:
-                    # Busca dados na planilha (Aba Clientes)
                     with st.spinner("Verificando cadastro..."):
                         resposta = requests.get(URL_PLANILHA).json()
                         lista_clientes = resposta.get('clientes', [])
                         
-                        # Procura o WhatsApp na Coluna C (índice 2)
-                        cliente = next((c for c in lista_clientes if str(c[2]) == zap_login), None)
+                        # Limpa o zap digitado (remove espaços)
+                        zap_digitado = str(zap_login).strip()
+                        
+                        # Procura o WhatsApp na lista
+                        cliente = None
+                        for c in lista_clientes:
+                            # Compara transformando tudo em STRING e limpando espaços
+                            # c[2] é onde fica o WhatsApp na planilha
+                            if str(c[2]).strip() == zap_digitado:
+                                cliente = c
+                                break
                         
                         if cliente:
-                            # Define se é Admin ou Cliente
-                            tipo = "admin" if zap_login == WHATSAPP_ADMIN else "cliente"
+                            # COMPARAÇÃO BLINDADA PARA ADMIN
+                            # Garantimos que ambos sejam strings e sem espaços
+                            zap_configurado = str(WHATSAPP_ADMIN).strip()
+                            
+                            if zap_digitado == zap_configurado:
+                                tipo_usuario = "admin"
+                            else:
+                                tipo_usuario = "cliente"
+                            
                             st.session_state.usuario = {
                                 "nome": cliente[1], 
-                                "zap": zap_login, 
-                                "tipo": tipo
+                                "zap": zap_digitado, 
+                                "tipo": tipo_usuario
                             }
                             st.success(f"A paz do Senhor, {cliente[1]}!")
                             st.rerun()
                         else:
-                            st.error("Número não encontrado. Por favor, faça seu cadastro abaixo.")
+                            st.error("Número não encontrado. Por favor, faça seu cadastro.")
                 except Exception as e:
-                    st.error("Erro ao conectar com a planilha. Verifique sua URL.")
+                    st.error(f"Erro técnico: {e}")
             else:
                 st.warning("Por favor, digite seu número.")
-
     with col_novo:
         if st.button("Sou Novo (Cadastrar)"):
             st.switch_page("pages/1_cadastro.py")
