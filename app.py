@@ -59,9 +59,9 @@ with col2:
     else:
         st.markdown("### 🧁 Ateliê Denise Borges")
         if st.session_state.usuario:
-    st.warning(f"DEBUG: Logado como {st.session_state.usuario['tipo']}")
-    st.write(f"WhatsApp que você digitou: **{st.session_state.usuario['zap']}**")
-    st.write(f"WhatsApp que o código espera para Admin: **{WHATSAPP_ADMIN}**")
+            st.warning(f"DEBUG: Logado como {st.session_state.usuario['tipo']}")
+            st.write(f"WhatsApp que você digitou: **{st.session_state.usuario['zap']}**")
+            st.write(f"WhatsApp que o código espera para Admin: **{WHATSAPP_ADMIN}**")
 
 # --- LÓGICA DE NAVEGAÇÃO / ACESSO ---
 
