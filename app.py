@@ -35,28 +35,26 @@ if st.session_state.usuario is None:
     col_btn1, col_btn2 = st.columns(2)
     
     with col_btn1:
-        if st.button("Entrar"):
-            if zap_login:
-                # 1. Busca na planilha se o cliente existe
-                try:
-                    dados = requests.get(URL_PLANILHA).json()
-                    clientes = dados.get('clientes', [])
-                    # Procura o zap na lista de clientes (coluna 2 do Sheets)
-                    cliente_encontrado = next((c for c in clientes if str(c[2]) == zap_login), None)
-                    
-                    if cliente_encontrado:
-                        st.session_state.usuario = {"nome": cliente_encontrado[1], "zap": zap_login, "tipo": "cliente"}
-                        # SE FOR O SEU NÚMERO, vira ADMIN
-                        if zap_login == "SEU_NUMERO_PESSOAL": 
-                            st.session_state.usuario["tipo"] = "admin"
-                        st.success(f"Bem-vindo(a), {cliente_encontrado[1]}!")
-                        st.rerun()
-                    else:
-                        st.error("Número não encontrado. Por favor, faça seu cadastro.")
-                except:
-                    st.error("Erro ao conectar com o banco de dados.")
+      # Dentro do botão de Entrar no app.py
+if st.button("Entrar"):
+    if zap_login:
+        try:
+            resposta = requests.get(URL_PLANILHA).json()
+            # Note que agora pegamos especificamente a parte 'clientes'
+            lista_clientes = resposta.get('clientes', [])
+            
+            # Procuramos o zap na coluna index 2 (WhatsApp)
+            encontrado = next((c for c in lista_clientes if str(c[2]) == zap_login), None)
+            
+            if encontrado:
+                st.session_state.usuario = {"nome": encontrado[1], "zap": zap_login, "tipo": "cliente"}
+                if zap_login == "240805": # Defina seu número admin
+                    st.session_state.usuario["tipo"] = "admin"
+                st.rerun()
             else:
-                st.warning("Digite o número do WhatsApp.")
+                st.error("Número não encontrado. Por favor, cadastre-se primeiro!")
+        except Exception as e:
+            st.error("Erro ao buscar dados. Verifique se a aba 'clientes' existe na planilha.")
 
     with col_btn2:
         if st.button("Sou Novo (Cadastrar)"):
