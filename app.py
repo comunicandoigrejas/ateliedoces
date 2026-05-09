@@ -2,80 +2,136 @@ import streamlit as st
 import requests
 import os
 
-st.set_page_config(page_title="Ateliê Denise Borges", page_icon="🧁", layout="centered", initial_sidebar_state="collapsed")
+# 1. CONFIGURAÇÃO DA PÁGINA (Sempre a primeira linha de código)
+st.set_page_config(
+    page_title="Ateliê Denise Borges", 
+    page_icon="🧁", 
+    layout="centered", 
+    initial_sidebar_state="collapsed"
+)
 
-# URL do seu Apps Script
-URL_PLANILHA = "https://script.google.com/macros/s/AKfycbxLIgR7YPRDnMCuWBh1gnfzH0U2JhH9UrOkXkZMmb4nerzTYimOWu2bGQoHw1tu5KQnSA/exec"
+# --- CONFIGURAÇÕES DE ACESSO ---
+# Substitua pela URL que aparece quando você implanta o Apps Script
+URL_PLANILHA = "https://script.google.com/macros/s/AKfycbzUgW_aJbbZRPpdoKgwpNDOc-4-f1sEKvhOMgC5xMCiPIo5Ytz-SrVLYm98peH3A-Ca3Q/exec" 
+# Coloque o seu WhatsApp aqui (apenas números) para o sistema te reconhecer como Admin
+WHATSAPP_ADMIN = "240805" 
 
-# Inicializa as variáveis de memória (Session State)
-if 'carrinho' not in st.session_state: st.session_state.carrinho = []
-if 'usuario' not in st.session_state: st.session_state.usuario = None
+# --- INICIALIZAÇÃO DA MEMÓRIA (Session State) ---
+if 'carrinho' not in st.session_state:
+    st.session_state.carrinho = []
+if 'usuario' not in st.session_state:
+    st.session_state.usuario = None
 
-# Esconde barra lateral e estiliza botões
+# --- ESTILIZAÇÃO CSS (Cores e Ocultar Menu Lateral) ---
 st.markdown("""
     <style>
+    /* Esconde o menu lateral e o botão de abrir */
     [data-testid="stSidebarNav"] {display: none;}
-    .stApp { background-color: #FFF0F5; }
-    div.stButton > button { background-color: #8E44AD; color: white !important; border-radius: 15px; font-weight: bold; height: 3.5em; width: 100%; }
+    [data-testid="stSidebar"] {display: none;}
+    
+    .stApp { background-color: #FFF0F5; } /* Fundo rosinha claro */
+    
+    /* Estilo dos Botões */
+    div.stButton > button { 
+        background-color: #8E44AD; 
+        color: white !important; 
+        border-radius: 15px; 
+        font-weight: bold; 
+        height: 3.5em;
+        width: 100%;
+        border: none;
+    }
+    div.stButton > button:hover {
+        background-color: #FFB6C1; 
+        color: #4B0082 !important;
+    }
+    
+    /* Títulos em Roxo */
+    h1, h2, h3 { color: #4B0082 !important; text-align: center; }
     </style>
     """, unsafe_allow_html=True)
 
-# Logo
-if os.path.exists("assets/logo.png"):
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2: st.image("assets/logo.png", width=220)
+# --- CABEÇALHO COM LOGO ---
+col1, col2, col3 = st.columns([1, 2, 1])
+with col2:
+    if os.path.exists("assets/logo.png"):
+        st.image("assets/logo.png", width=220)
+    else:
+        st.markdown("### 🧁 Ateliê Denise Borges")
 
-st.markdown("<h1 style='text-align: center;'>Ateliê Denise Borges</h1>", unsafe_allow_html=True)
+# --- LÓGICA DE NAVEGAÇÃO / ACESSO ---
 
-# --- LÓGICA DE ACESSO ---
+# SE O USUÁRIO NÃO ESTÁ LOGADO
 if st.session_state.usuario is None:
-    st.subheader("Olá! Para continuar, informe seu WhatsApp:")
-    zap_login = st.text_input("WhatsApp (apenas números):", placeholder="Ex: 19999999999")
+    st.markdown("## Bem-vindo(a)!")
+    st.write("Para continuar, informe seu WhatsApp cadastrado:")
     
-    col_btn1, col_btn2 = st.columns(2)
+    zap_login = st.text_input("WhatsApp (apenas números)", placeholder="Ex: 19988776655")
     
-    with col_btn1:
-      # Dentro do botão de Entrar no app.py
-if st.button("Entrar"):
-    if zap_login:
-        try:
-            resposta = requests.get(URL_PLANILHA).json()
-            # Note que agora pegamos especificamente a parte 'clientes'
-            lista_clientes = resposta.get('clientes', [])
-            
-            # Procuramos o zap na coluna index 2 (WhatsApp)
-            encontrado = next((c for c in lista_clientes if str(c[2]) == zap_login), None)
-            
-            if encontrado:
-                st.session_state.usuario = {"nome": encontrado[1], "zap": zap_login, "tipo": "cliente"}
-                if zap_login == "240805": # Defina seu número admin
-                    st.session_state.usuario["tipo"] = "admin"
-                st.rerun()
+    col_entrar, col_novo = st.columns(2)
+    
+    with col_entrar:
+        if st.button("Entrar"):
+            if zap_login:
+                try:
+                    # Busca dados na planilha (Aba Clientes)
+                    with st.spinner("Verificando cadastro..."):
+                        resposta = requests.get(URL_PLANILHA).json()
+                        lista_clientes = resposta.get('clientes', [])
+                        
+                        # Procura o WhatsApp na Coluna C (índice 2)
+                        cliente = next((c for c in lista_clientes if str(c[2]) == zap_login), None)
+                        
+                        if cliente:
+                            # Define se é Admin ou Cliente
+                            tipo = "admin" if zap_login == WHATSAPP_ADMIN else "cliente"
+                            st.session_state.usuario = {
+                                "nome": cliente[1], 
+                                "zap": zap_login, 
+                                "tipo": tipo
+                            }
+                            st.success(f"A paz do Senhor, {cliente[1]}!")
+                            st.rerun()
+                        else:
+                            st.error("Número não encontrado. Por favor, faça seu cadastro abaixo.")
+                except Exception as e:
+                    st.error("Erro ao conectar com a planilha. Verifique sua URL.")
             else:
-                st.error("Número não encontrado. Por favor, cadastre-se primeiro!")
-        except Exception as e:
-            st.error("Erro ao buscar dados. Verifique se a aba 'clientes' existe na planilha.")
+                st.warning("Por favor, digite seu número.")
 
-    with col_btn2:
+    with col_novo:
         if st.button("Sou Novo (Cadastrar)"):
             st.switch_page("pages/1_cadastro.py")
 
-# --- MENU APÓS LOGIN ---
+# SE O USUÁRIO JÁ ESTÁ LOGADO
 else:
-    st.write(f"### Olá, {st.session_state.usuario['nome']}! 👋")
-    
-    # Se for a Denise, mostra o botão de Admin
+    st.markdown(f"## Olá, {st.session_state.usuario['nome']}!")
+    st.info("📖 'Provai e vede que o Senhor é bom...' - Salmos 34:8 (ARA)")
+
+    # ÁREA DO ADMIN (Só aparece para a Denise)
     if st.session_state.usuario['tipo'] == "admin":
-        if st.button("🔐 ACESSAR PAINEL ADMINISTRATIVO"):
+        st.subheader("🛠️ Painel de Gestão")
+        if st.button("📊 ACESSAR ADMINISTRAÇÃO"):
             st.switch_page("pages/5_admin.py")
         st.divider()
 
-    col_a, col_b = st.columns(2)
-    with col_a:
-        if st.button("🍰 Ver Cardápio"): st.switch_page("pages/2_cardapio.py")
-        if st.button("🚚 Meus Pedidos"): st.switch_page("pages/4_rastreio.py")
-    with col_b:
-        if st.button("🛒 Ver Carrinho"): st.switch_page("pages/3_pedidos.py")
-        if st.button("🚪 Sair"):
+    # MENU PRINCIPAL DO CLIENTE
+    st.write("### O que deseja fazer?")
+    
+    m1, m2 = st.columns(2)
+    with m1:
+        if st.button("🍰 Ver Cardápio"):
+            st.switch_page("pages/2_cardapio.py")
+        if st.button("🛒 Ver Meu Carrinho"):
+            st.switch_page("pages/3_pedidos.py")
+            
+    with m2:
+        if st.button("🚚 Rastrear Pedidos"):
+            st.switch_page("pages/4_rastreio.py")
+        if st.button("🚪 Sair / Trocar Conta"):
             st.session_state.usuario = None
+            st.session_state.carrinho = [] # Limpa o carrinho ao sair
             st.rerun()
+
+    st.divider()
+    st.caption("Ateliê Doces Denise Borges - Doces feitos com amor e benção!")
