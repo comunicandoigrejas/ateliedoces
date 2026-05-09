@@ -42,9 +42,11 @@ col_a, col_b = st.columns(2)
 
 with col_a:
     if st.button("👤 Fazer Meu Cadastro"):
+        # Tentativa 1: Apenas o nome do arquivo
         st.switch_page("pages/1_Cadastro.py")
     
     if st.button("🍰 Ver Cardápio"):
+        # Tentativa 2: Nome simplificado se a 1 falhar
         st.switch_page("pages/2_Cardapio.py")
 
 with col_b:
