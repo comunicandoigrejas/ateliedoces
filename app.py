@@ -3,7 +3,7 @@ import os
 
 st.set_page_config(page_title="Início - Ateliê Denise Borges", page_icon="🧁", layout="centered")
 
-# Estilização para os botões ficarem bonitos e centralizados
+# Estilização CSS para botões grandes e chamativos
 st.markdown("""
     <style>
     .stApp { background-color: #FFF0F5; }
@@ -27,7 +27,7 @@ def exibir_imagem(caminho, largura):
     else:
         st.image("https://via.placeholder.com/400x400?text=Ateliê+Denise+Borges", width=largura)
 
-# Centralizando a Logo
+# Logomarca Centralizada
 col1, col2, col3 = st.columns([1, 2, 1])
 with col2:
     exibir_imagem("assets/logo.png", 220)
@@ -37,24 +37,22 @@ st.info("📖 'Provai e vede que o Senhor é bom...' - Salmos 34:8 (ARA)")
 
 st.write("### O que deseja fazer hoje, abençoado(a)?")
 
-# Criando botões de atalho para as páginas
+# Botões de Atalho com os nomes de arquivos "limpos"
 col_a, col_b = st.columns(2)
 
 with col_a:
     if st.button("👤 Fazer Meu Cadastro"):
-        # Tente apenas o nome final. Se o arquivo é 1_👤_Cadastro.py, 
-        # o Streamlit geralmente o identifica como "1_cadastro" ou "1_👤_cadastro"
-        st.switch_page("pages/1_👤_Cadastro.py")
+        st.switch_page("pages/1_Cadastro.py")
     
     if st.button("🍰 Ver Cardápio"):
-        st.switch_page("pages/2_🍰_Cardapio.py")
+        st.switch_page("pages/2_Cardapio.py")
 
 with col_b:
     if st.button("🚚 Rastrear Pedido"):
-        st.switch_page("pages/4_🚚_Rastreio.py")
+        st.switch_page("pages/4_Rastreio.py")
     
     if st.button("🛒 Ver Meu Carrinho"):
-        st.switch_page("pages/3_🛒_Pedidos.py")
+        st.switch_page("pages/3_Pedidos.py")
 
 st.divider()
 st.caption("Você também pode navegar pelo menu no canto esquerdo da tela.")
