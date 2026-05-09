@@ -14,7 +14,7 @@ st.set_page_config(
 # Substitua pela URL que aparece quando você implanta o Apps Script
 URL_PLANILHA = "https://script.google.com/macros/s/AKfycbzUgW_aJbbZRPpdoKgwpNDOc-4-f1sEKvhOMgC5xMCiPIo5Ytz-SrVLYm98peH3A-Ca3Q/exec" 
 # Coloque o seu WhatsApp aqui (apenas números) para o sistema te reconhecer como Admin
-WHATSAPP_ADMIN = "240805" 
+WHATSAPP_ADMIN = "19992709717" 
 
 # --- INICIALIZAÇÃO DA MEMÓRIA (Session State) ---
 if 'carrinho' not in st.session_state:
