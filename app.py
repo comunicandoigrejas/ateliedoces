@@ -42,18 +42,17 @@ col_a, col_b = st.columns(2)
 
 with col_a:
     if st.button("👤 Fazer Meu Cadastro"):
-        # Se o arquivo é 1_Cadastro.py, o Streamlit entende apenas como "1_Cadastro"
-        st.switch_page("pages/1_Cadastro.py")
+        st.switch_page("pages/1_cadastro") # Minúsculo e sem .py
     
     if st.button("🍰 Ver Cardápio"):
-        st.switch_page("pages/2_Cardapio.py")
+        st.switch_page("pages/2_cardapio")
 
 with col_b:
     if st.button("🚚 Rastrear Pedido"):
-        st.switch_page("pages/4_Rastreio.py")
+        st.switch_page("pages/4_rastreio")
     
     if st.button("🛒 Ver Meu Carrinho"):
-        st.switch_page("pages/3_Pedidos.py")
+        st.switch_page("pages/3_pedidos")
 
 st.divider()
 st.caption("Você também pode navegar pelo menu no canto esquerdo da tela.")
