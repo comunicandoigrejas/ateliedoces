@@ -11,9 +11,7 @@ st.set_page_config(
 )
 
 # --- CONFIGURAÇÕES DE ACESSO ---
-# Substitua pela URL que aparece quando você implanta o Apps Script
 URL_PLANILHA = "https://script.google.com/macros/s/AKfycbzUgW_aJbbZRPpdoKgwpNDOc-4-f1sEKvhOMgC5xMCiPIo5Ytz-SrVLYm98peH3A-Ca3Q/exec" 
-# Coloque o seu WhatsApp aqui (apenas números) para o sistema te reconhecer como Admin
 WHATSAPP_ADMIN = "19992709717" 
 
 # --- INICIALIZAÇÃO DA MEMÓRIA (Session State) ---
@@ -22,16 +20,12 @@ if 'carrinho' not in st.session_state:
 if 'usuario' not in st.session_state:
     st.session_state.usuario = None
 
-# --- ESTILIZAÇÃO CSS (Cores e Ocultar Menu Lateral) ---
+# --- ESTILIZAÇÃO CSS ---
 st.markdown("""
     <style>
-    /* Esconde o menu lateral e o botão de abrir */
     [data-testid="stSidebarNav"] {display: none;}
     [data-testid="stSidebar"] {display: none;}
-    
-    .stApp { background-color: #FFF0F5; } /* Fundo rosinha claro */
-    
-    /* Estilo dos Botões */
+    .stApp { background-color: #FFF0F5; } 
     div.stButton > button { 
         background-color: #8E44AD; 
         color: white !important; 
@@ -45,8 +39,6 @@ st.markdown("""
         background-color: #FFB6C1; 
         color: #4B0082 !important;
     }
-    
-    /* Títulos em Roxo */
     h1, h2, h3 { color: #4B0082 !important; text-align: center; }
     </style>
     """, unsafe_allow_html=True)
@@ -58,14 +50,9 @@ with col2:
         st.image("assets/logo.png", width=220)
     else:
         st.markdown("### 🧁 Ateliê Denise Borges")
-        if st.session_state.usuario:
-            st.warning(f"DEBUG: Logado como {st.session_state.usuario['tipo']}")
-            st.write(f"WhatsApp que você digitou: **{st.session_state.usuario['zap']}**")
-            st.write(f"WhatsApp que o código espera para Admin: **{WHATSAPP_ADMIN}**")
 
 # --- LÓGICA DE NAVEGAÇÃO / ACESSO ---
 
-# SE O USUÁRIO NÃO ESTÁ LOGADO
 if st.session_state.usuario is None:
     st.markdown("## Bem-vindo(a)!")
     st.write("Para continuar, informe seu WhatsApp cadastrado:")
@@ -74,7 +61,7 @@ if st.session_state.usuario is None:
     
     col_entrar, col_novo = st.columns(2)
     
-   with col_entrar:
+    with col_entrar:
         if st.button("Entrar"):
             if zap_login:
                 try:
@@ -82,27 +69,21 @@ if st.session_state.usuario is None:
                         resposta = requests.get(URL_PLANILHA).json()
                         lista_clientes = resposta.get('clientes', [])
                         
-                        # Limpa o zap digitado (remove espaços)
-                        zap_digitado = str(zap_login).strip()
+                        # Limpa o zap digitado (remove espaços e possíveis .0)
+                        zap_digitado = str(zap_login).strip().replace(".0", "")
                         
-                        # Procura o WhatsApp na lista
                         cliente = None
                         for c in lista_clientes:
-                            # Compara transformando tudo em STRING e limpando espaços
-                            # c[2] é onde fica o WhatsApp na planilha
-                            if str(c[2]).strip() == zap_digitado:
+                            # Compara limpando o formato que vem da planilha também
+                            if str(c[2]).strip().replace(".0", "") == zap_digitado:
                                 cliente = c
                                 break
                         
                         if cliente:
-                            # COMPARAÇÃO BLINDADA PARA ADMIN
-                            # Garantimos que ambos sejam strings e sem espaços
-                            zap_configurado = str(WHATSAPP_ADMIN).strip()
+                            zap_configurado = str(WHATSAPP_ADMIN).strip().replace(".0", "")
                             
-                            if zap_digitado == zap_configurado:
-                                tipo_usuario = "admin"
-                            else:
-                                tipo_usuario = "cliente"
+                            # Define se é Admin ou Cliente
+                            tipo_usuario = "admin" if zap_digitado == zap_configurado else "cliente"
                             
                             st.session_state.usuario = {
                                 "nome": cliente[1], 
@@ -117,23 +98,23 @@ if st.session_state.usuario is None:
                     st.error(f"Erro técnico: {e}")
             else:
                 st.warning("Por favor, digite seu número.")
+
     with col_novo:
         if st.button("Sou Novo (Cadastrar)"):
             st.switch_page("pages/1_cadastro.py")
 
-# SE O USUÁRIO JÁ ESTÁ LOGADO
 else:
     st.markdown(f"## Olá, {st.session_state.usuario['nome']}!")
     st.info("📖 'Provai e vede que o Senhor é bom...' - Salmos 34:8 (ARA)")
 
-    # ÁREA DO ADMIN (Só aparece para a Denise)
+    # ÁREA DO ADMIN
     if st.session_state.usuario['tipo'] == "admin":
         st.subheader("🛠️ Painel de Gestão")
         if st.button("📊 ACESSAR ADMINISTRAÇÃO"):
             st.switch_page("pages/5_admin.py")
         st.divider()
 
-    # MENU PRINCIPAL DO CLIENTE
+    # MENU PRINCIPAL
     st.write("### O que deseja fazer?")
     
     m1, m2 = st.columns(2)
@@ -148,7 +129,7 @@ else:
             st.switch_page("pages/4_rastreio.py")
         if st.button("🚪 Sair / Trocar Conta"):
             st.session_state.usuario = None
-            st.session_state.carrinho = [] # Limpa o carrinho ao sair
+            st.session_state.carrinho = []
             st.rerun()
 
     st.divider()
