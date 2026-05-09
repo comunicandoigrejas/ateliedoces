@@ -19,7 +19,7 @@ with st.form("form_cadastro"):
         if nome and whatsapp:
             # Enviamos para a planilha
             dados = {"action": "create_user", "nome": nome, "whatsapp": whatsapp, "endereco": endereco}
-            requests.post("https://script.google.com/macros/s/AKfycbxLIgR7YPRDnMCuWBh1gnfzH0U2JhH9UrOkXkZMmb4nerzTYimOWu2bGQoHw1tu5KQnSA/exec", json=dados)
+            requests.post("https://script.google.com/macros/s/AKfycbwgRjd6uakrLSiry3hg4Uu43GUymgS-2Cm1x5sD8yXvp38W799MoG7XBnZT9JzGq2tViA/exec", json=dados)
             st.success("Cadastro realizado com sucesso, varão/varoa!")
         else:
             st.warning("Preencha o nome e o WhatsApp.")
