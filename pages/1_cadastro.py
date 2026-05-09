@@ -1,6 +1,16 @@
 import streamlit as st
 import requests
 
+st.set_page_config(page_title="Página - Ateliê", initial_sidebar_state="collapsed")
+
+# Esconde a barra lateral via CSS
+st.markdown("<style>[data-testid='stSidebarNav'] {display: none;}</style>", unsafe_allow_html=True)
+
+if st.button("⬅️ Voltar para o Menu Inicial"):
+    st.switch_page("app.py")
+
+st.divider()
+# ... restante do código da página ...
 URL_PLANILHA = "https://script.google.com/macros/s/AKfycbxnjSSBOgQEre9jk58xmIOsdPok70-NCooPk0L4WiPWFHjfmxSRGUicYvQTp5tYRjXqyw/exec"
 
 st.set_page_config(page_title="Cadastro - Ateliê", page_icon="👤")
