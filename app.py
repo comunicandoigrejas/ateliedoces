@@ -54,6 +54,5 @@ with col_b:
     
     if st.button("🛒 Ver Meu Carrinho"):
         st.switch_page("pages/3_pedidos.py")
-
 st.divider()
 st.caption("Você também pode navegar pelo menu no canto esquerdo da tela.")
