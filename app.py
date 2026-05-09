@@ -42,6 +42,8 @@ col_a, col_b = st.columns(2)
 
 with col_a:
     if st.button("👤 Fazer Meu Cadastro"):
+        # Tente apenas o nome final. Se o arquivo é 1_👤_Cadastro.py, 
+        # o Streamlit geralmente o identifica como "1_cadastro" ou "1_👤_cadastro"
         st.switch_page("pages/1_👤_Cadastro.py")
     
     if st.button("🍰 Ver Cardápio"):
