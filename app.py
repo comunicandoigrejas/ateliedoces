@@ -3,7 +3,7 @@ import os
 
 st.set_page_config(page_title="Início - Ateliê Denise Borges", page_icon="🧁", layout="centered")
 
-# Estilização para os botões ficarem bonitos
+# Estilização para os botões ficarem bonitos e centralizados
 st.markdown("""
     <style>
     .stApp { background-color: #FFF0F5; }
@@ -13,7 +13,7 @@ st.markdown("""
         color: white !important; 
         border-radius: 15px; 
         font-weight: bold; 
-        height: 3em;
+        height: 3.5em;
         width: 100%;
         margin-bottom: 10px;
     }
@@ -55,4 +55,4 @@ with col_b:
         st.switch_page("pages/3_🛒_Pedidos.py")
 
 st.divider()
-st.caption("Você também pode navegar pelo menu no canto esquerdo da tela.")dapio.py")
+st.caption("Você também pode navegar pelo menu no canto esquerdo da tela.")
