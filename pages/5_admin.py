@@ -6,7 +6,7 @@ import pandas as pd
 st.set_page_config(page_title="Gestão Ateliê", layout="centered", initial_sidebar_state="collapsed")
 
 # URL do seu Apps Script (a mesma que você usou no app.py)
-URL_PLANILHA = "https://script.google.com/macros/s/AKfycbzUgW_aJbbZRPpdoKgwpNDOc-4-f1sEKvhOMgC5xMCiPIo5Ytz-SrVLYm98peH3A-Ca3Q/exec"
+URL_PLANILHA = "https://script.google.com/macros/s/AKfycbwgRjd6uakrLSiry3hg4Uu43GUymgS-2Cm1x5sD8yXvp38W799MoG7XBnZT9JzGq2tViA/exec"
 
 # Esconder menu lateral
 st.markdown("<style>[data-testid='stSidebarNav'] {display: none;}</style>", unsafe_allow_html=True)
