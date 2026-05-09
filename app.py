@@ -42,17 +42,18 @@ col_a, col_b = st.columns(2)
 
 with col_a:
     if st.button("👤 Fazer Meu Cadastro"):
-        st.switch_page("pages/1_cadastro") # Minúsculo e sem .py
+        # O caminho deve ser exatamente como está na sua estrutura de pastas
+        st.switch_page("pages/1_cadastro.py")
     
     if st.button("🍰 Ver Cardápio"):
-        st.switch_page("pages/2_cardapio")
+        st.switch_page("pages/2_cardapio.py")
 
 with col_b:
     if st.button("🚚 Rastrear Pedido"):
-        st.switch_page("pages/4_rastreio")
+        st.switch_page("pages/4_rastreio.py")
     
     if st.button("🛒 Ver Meu Carrinho"):
-        st.switch_page("pages/3_pedidos")
+        st.switch_page("pages/3_pedidos.py")
 
 st.divider()
 st.caption("Você também pode navegar pelo menu no canto esquerdo da tela.")
