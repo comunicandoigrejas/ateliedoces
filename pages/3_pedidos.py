@@ -1,3 +1,6 @@
+import streamlit as st
+import requests
+
 if st.button("🚀 Confirmar e Enviar Pedido"):
     with st.spinner("Enviando pedido..."):
         payload = {
