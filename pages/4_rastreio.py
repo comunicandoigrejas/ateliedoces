@@ -13,7 +13,7 @@ zap_busca = st.text_input("Digite seu WhatsApp cadastrado:")
 if zap_busca:
     try:
         # Busca os pedidos na planilha
-        resposta = requests.get("SUA_URL_AQUI").json()
+        resposta = requests.get("https://script.google.com/macros/s/AKfycbwgRjd6uakrLSiry3hg4Uu43GUymgS-2Cm1x5sD8yXvp38W799MoG7XBnZT9JzGq2tViA/exec").json()
         # Filtra apenas os pedidos desse WhatsApp
         meus_pedidos = [p for p in resposta if str(p.get('whatsapp')) == zap_busca]
         
