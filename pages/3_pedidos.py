@@ -1,5 +1,6 @@
 import streamlit as st
 import requests
+import urllib.parse
 
 # 1. CONFIGURAÇÃO DA PÁGINA
 st.set_page_config(
@@ -9,11 +10,11 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# --- CONFIGURAÇÕES DE ACESSO ---
-# Certifique-se de que esta URL seja a da sua última implantação (Nova Versão)
+# --- CONFIGURAÇÕES ---
 URL_PLANILHA = "https://script.google.com/macros/s/AKfycbwgRjd6uakrLSiry3hg4Uu43GUymgS-2Cm1x5sD8yXvp38W799MoG7XBnZT9JzGq2tViA/exec"
+WHATSAPP_ADMIN = "19992709717" # Número da Denise
 
-# --- ESTILIZAÇÃO CSS (Esconder Menu Lateral) ---
+# --- ESTILIZAÇÃO CSS ---
 st.markdown("""
     <style>
     [data-testid="stSidebarNav"] {display: none;}
@@ -31,7 +32,6 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# Botão para voltar
 if st.button("⬅️ Voltar ao Cardápio"):
     st.switch_page("pages/2_cardapio.py")
 
@@ -53,9 +53,9 @@ else:
     st.subheader("Resumo da sua encomenda:")
     
     total = 0
-    texto_pedido = ""
+    texto_pedido_planilha = ""
+    texto_whatsapp = "Olá Denise! Gostaria de confirmar meu pedido:\n\n"
     
-    # Listar itens do carrinho
     for i, item in enumerate(st.session_state.carrinho):
         col_item, col_preco, col_remover = st.columns([3, 1, 1])
         with col_item:
@@ -68,60 +68,61 @@ else:
                 st.rerun()
         
         total += item['preco']
-        texto_pedido += f"{item['item']} (R$ {item['preco']:.2f}), "
+        texto_pedido_planilha += f"{item['item']}, "
+        texto_whatsapp += f"• {item['item']} - R$ {item['preco']:.2f}\n"
 
     st.divider()
-    
-    col_t1, col_t2 = st.columns(2)
-    with col_t1:
-        st.markdown(f"### Total: R$ {total:.2f}")
-    with col_t2:
-        pontos = int(total)
-        st.markdown(f"### ✨ Pontos: {pontos}")
+    st.markdown(f"### Total: R$ {total:.2f}")
 
-    st.write("---")
-    
     # BOTÃO PARA FINALIZAR
-    if st.button("🚀 ENVIAR PEDIDO PARA O ATELIÊ"):
-        with st.spinner("Registrando seu pedido no céu e na planilha..."):
-            # Preparar dados para o Google Sheets
+    if st.button("🚀 CONFIRMAR PEDIDO"):
+        with st.spinner("Registrando na planilha..."):
             payload = {
                 "action": "create",
                 "nome": st.session_state.usuario['nome'],
                 "whatsapp": st.session_state.usuario['zap'],
-                "pedido": texto_pedido[:-2], # Remove a última vírgula e espaço
+                "pedido": texto_pedido_planilha[:-2],
                 "total": total
             }
             
             try:
-                # Envia para o Google Apps Script
                 res = requests.post(URL_PLANILHA, json=payload)
                 
-                # Se o Google responder com sucesso (JSON)
                 if res.status_code == 200:
-                    try:
-                        resultado = res.json()
-                        if resultado.get("status") == "sucesso":
-                            st.success("Glória a Deus! Seu pedido foi recebido com sucesso.")
-                            st.balloons()
-                            # Limpa o carrinho
-                            st.session_state.carrinho = []
-                            st.info("Você já pode acompanhar o status em 'Rastrear Pedidos'.")
-                        else:
-                            st.error(f"Erro no servidor: {resultado.get('message')}")
-                    except:
-                        # Caso o Google responda Sucesso mas não em formato JSON
-                        if "Sucesso" in res.text or "OK" in res.text:
-                            st.success("Pedido enviado com sucesso!")
-                            st.session_state.carrinho = []
-                        else:
-                            st.error("Resposta inesperada do servidor. Verifique a planilha.")
-                            st.code(res.text[:100])
+                    st.success("✅ Pedido registrado com sucesso!")
+                    
+                    # PREPARAÇÃO DA MENSAGEM WHATSAPP
+                    texto_final = texto_whatsapp + f"\n*Total: R$ {total:.2f}*\n*Cliente:* {st.session_state.usuario['nome']}"
+                    texto_codificado = urllib.parse.quote(texto_final)
+                    link_zap = f"https://wa.me/55{WHATSAPP_ADMIN}?text={texto_codificado}"
+                    
+                    st.balloons()
+                    
+                    # BOTÃO DO WHATSAPP ESTILIZADO
+                    st.markdown(f"""
+                        <a href="{link_zap}" target="_blank" style="text-decoration: none;">
+                            <div style="
+                                background-color: #25D366; 
+                                color: white; 
+                                text-align: center; 
+                                padding: 15px; 
+                                border-radius: 15px; 
+                                font-weight: bold; 
+                                font-size: 18px;
+                                margin-top: 10px;">
+                                🟢 ENVIAR PEDIDO NO WHATSAPP DA DENISE
+                            </div>
+                        </a>
+                        """, unsafe_allow_html=True)
+                    
+                    st.info("⚠️ **Atenção:** Para que a Denise veja seu pedido agora, clique no botão verde acima!")
+                    
+                    # Limpa o carrinho
+                    st.session_state.carrinho = []
                 else:
-                    st.error(f"Erro de conexão (Status {res.status_code}).")
-            
+                    st.error("Erro ao salvar na planilha. Tente novamente.")
             except Exception as e:
-                st.error(f"Falha técnica ao enviar: {e}")
+                st.error(f"Falha técnica: {e}")
 
     if st.button("➕ Adicionar mais itens"):
         st.switch_page("pages/2_cardapio.py")
