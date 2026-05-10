@@ -88,32 +88,49 @@ else:
             try:
                 res = requests.post(URL_PLANILHA, json=payload)
                 
-                if res.status_code == 200:
-                    st.success("✅ Pedido registrado com sucesso!")
+              if res.status_code == 200:
+                    st.success("✅ Pedido registrado na planilha!")
                     
-                    # PREPARAÇÃO DA MENSAGEM WHATSAPP
-                    texto_final = texto_whatsapp + f"\n*Total: R$ {total:.2f}*\n*Cliente:* {st.session_state.usuario['nome']}"
-                    texto_codificado = urllib.parse.quote(texto_final)
-                    link_zap = f"https://wa.me/5519992709717?text={texto_codificado}"
-                    
+                    # 1. Preparar a mensagem de forma limpa
+                    quebra_linha = "%0A" # Código para pular linha no WhatsApp
+                    texto_zap = f"Olá Denise! Novo pedido realizado:*%0A%0A"
+                    texto_zap += f"*Cliente:* {st.session_state.usuario['nome']}{quebra_linha}"
+                    texto_zap += f"*Pedido:* {texto_pedido_planilha[:-2]}{quebra_linha}"
+                    texto_zap += f"*Total:* R$ {total:.2f}{quebra_linha}{quebra_linha}"
+                    texto_zap += f"Aguardando sua confirmação! 🙌"
+
+                    # 2. Criar o link direto
+                    # O link api.whatsapp.com é mais universal que o wa.me em alguns navegadores
+                    link_final = f"https://api.whatsapp.com/send?phone=55{WHATSAPP_ADMIN}&text={texto_zap}"
+
                     st.balloons()
                     
-                    # BOTÃO DO WHATSAPP ESTILIZADO
+                    # 3. Botão com "Gatilho Automático" via HTML
                     st.markdown(f"""
-                        <a href="{link_zap}" target="_blank" style="text-decoration: none;">
-                            <div style="
-                                background-color: #25D366; 
-                                color: white; 
-                                text-align: center; 
-                                padding: 15px; 
-                                border-radius: 15px; 
-                                font-weight: bold; 
-                                font-size: 18px;
-                                margin-top: 10px;">
-                                🟢 ENVIAR PEDIDO NO WHATSAPP DA DENISE
-                            </div>
-                        </a>
+                        <div style="text-align: center; margin-top: 20px;">
+                            <a href="{link_final}" target="_blank" style="text-decoration: none;">
+                                <button style="
+                                    background-color: #25D366; 
+                                    color: white; 
+                                    border: none; 
+                                    padding: 20px; 
+                                    border-radius: 15px; 
+                                    font-weight: bold; 
+                                    font-size: 20px; 
+                                    cursor: pointer;
+                                    width: 100%;
+                                    box-shadow: 0px 4px 10px rgba(0,0,0,0.1);">
+                                    🟢 CLIQUE AQUI PARA ENVIAR NO WHATSAPP
+                                </button>
+                            </a>
+                            <p style="color: #666; font-size: 14px; margin-top: 10px;">
+                                (Ao clicar, o seu WhatsApp abrirá com a mensagem pronta)
+                            </p>
+                        </div>
                         """, unsafe_allow_html=True)
+                    
+                    # Limpa o carrinho para evitar pedidos duplicados
+                    st.session_state.carrinho = []
                     
                     st.info("⚠️ **Atenção:** Para que a Denise veja seu pedido agora, clique no botão verde acima!")
                     
