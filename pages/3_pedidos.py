@@ -94,7 +94,7 @@ else:
                     # PREPARAÇÃO DA MENSAGEM WHATSAPP
                     texto_final = texto_whatsapp + f"\n*Total: R$ {total:.2f}*\n*Cliente:* {st.session_state.usuario['nome']}"
                     texto_codificado = urllib.parse.quote(texto_final)
-                    link_zap = f"https://wa.me/55{WHATSAPP_ADMIN}?text={texto_codificado}"
+                    link_zap = f"https://wa.me/5519992709717?text={texto_codificado}"
                     
                     st.balloons()
                     
