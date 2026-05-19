@@ -7,7 +7,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ====================== CSS AGRESSIVO ======================
+# ====================== CSS ATUALIZADO ======================
 st.markdown("""
     <style>
     [data-testid="stSidebarNav"], [data-testid="stSidebar"] {display: none !important;}
@@ -15,20 +15,15 @@ st.markdown("""
     
     h1, h2, h3, p, label { color: #1a1a1a !important; }
 
-    /* Remove TODOS os espaços e caixas brancas no topo */
+    /* Remove caixas brancas no topo */
     div[data-testid="column"] {
         padding-top: 0 !important;
         margin-top: 0 !important;
     }
     
-    .stMarkdown, .element-container, div[data-testid="stVerticalBlock"] > div {
+    .stMarkdown, .element-container, div[data-testid="stVerticalBlock"] > div:first-child {
         margin-top: 0 !important;
         padding-top: 0 !important;
-    }
-
-    /* Esconde qualquer elemento vazio ou caixa branca */
-    div[data-testid="stVerticalBlock"] > div:first-child {
-        display: none !important;
     }
 
     .card-doces {
@@ -51,6 +46,19 @@ st.markdown("""
         border-radius: 12px;
         font-weight: bold;
     }
+
+    /* ESTILO DO TOAST (produto adicionado) */
+    .stToast {
+        background-color: #28a745 !important;
+        color: white !important;
+        border-radius: 12px !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
+    }
+    
+    .stToast .stMarkdown p {
+        color: white !important;
+        font-weight: 500 !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -71,7 +79,6 @@ produtos = [
     {"nome": "Kit 4 Trufas", "preco": 15.00, "imagem": "assets/trufas4unidades1.png"}
 ]
 
-# Layout sem colunas tradicionais para evitar caixas
 for i in range(0, len(produtos), 2):
     col1, col2 = st.columns(2, gap="small")
     
@@ -85,9 +92,11 @@ for i in range(0, len(produtos), 2):
                 st.warning(f"Imagem não encontrada")
             st.subheader(produto['nome'])
             st.markdown(f"**R$ {produto['preco']:.2f}**")
+            
             if st.button(f"Adicionar {produto['nome']}", key=f"add_{i}"):
                 st.session_state.carrinho.append({"item": produto["nome"], "preco": produto["preco"]})
-                st.toast(f"✅ {produto['nome']} adicionado!", icon="🛒")
+                st.toast(f"✅ {produto['nome']} adicionado ao carrinho!", icon="🛒")
+            
             st.markdown('</div>', unsafe_allow_html=True)
 
     with col2:
@@ -100,9 +109,11 @@ for i in range(0, len(produtos), 2):
                 st.warning(f"Imagem não encontrada")
             st.subheader(produto['nome'])
             st.markdown(f"**R$ {produto['preco']:.2f}**")
+            
             if st.button(f"Adicionar {produto['nome']}", key=f"add_{i+1}"):
                 st.session_state.carrinho.append({"item": produto["nome"], "preco": produto["preco"]})
-                st.toast(f"✅ {produto['nome']} adicionado!", icon="🛒")
+                st.toast(f"✅ {produto['nome']} adicionado ao carrinho!", icon="🛒")
+            
             st.markdown('</div>', unsafe_allow_html=True)
 
 st.divider()
