@@ -7,7 +7,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ====================== CSS ======================
+# ====================== CSS MELHORADO ======================
 st.markdown("""
     <style>
     [data-testid="stSidebarNav"], [data-testid="stSidebar"] {display: none;}
@@ -15,18 +15,24 @@ st.markdown("""
     
     h1, h2, h3, p, label { color: #1a1a1a !important; }
     
+    /* Remove espaços e caixas indesejadas */
+    .stMarkdown, .element-container, div[data-testid="column"] {
+        margin-top: 0 !important;
+        padding-top: 0 !important;
+    }
+    
     .card-doces {
         background-color: white;
-        padding: 15px;
+        padding: 12px;
         border-radius: 18px;
         box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         text-align: center;
-        margin-bottom: 20px;
+        margin-bottom: 25px;
     }
     
     .card-doces img {
         border-radius: 12px;
-        margin-bottom: 10px;
+        margin: 8px 0 10px 0;
     }
     
     div.stButton > button {
@@ -35,6 +41,11 @@ st.markdown("""
         border-radius: 12px;
         font-weight: bold;
         margin-top: 8px;
+    }
+    
+    /* Remove qualquer caixa branca vazia */
+    .stTextInput, .stTextArea, .stSelectbox {
+        display: none !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -45,7 +56,7 @@ if st.button("⬅️ Menu Inicial"):
 st.header("🍰 Nosso Cardápio")
 st.write("Escolha as bênçãos de hoje:")
 
-# Inicializa carrinho
+# Carrinho
 if 'carrinho' not in st.session_state:
     st.session_state.carrinho = []
 
@@ -57,31 +68,30 @@ produtos = [
     {"nome": "Kit 4 Trufas", "preco": 15.00, "imagem": "assets/trufas4unidades1.png"}
 ]
 
-# Grid com 2 colunas
+# Layout em colunas
 cols = st.columns(2)
 
 for i, produto in enumerate(produtos):
     with cols[i % 2]:
         st.markdown('<div class="card-doces">', unsafe_allow_html=True)
         
-        # Imagem menor
+        # Imagem com tamanho controlado
         try:
-            st.image(produto["imagem"], width=220)   # ← Tamanho reduzido
+            st.image(produto["imagem"], width=200)
         except:
-            st.warning(f"Imagem de {produto['nome']} não encontrada.")
+            st.warning(f"Imagem não encontrada: {produto['nome']}")
         
         st.subheader(produto['nome'])
         st.markdown(f"**R$ {produto['preco']:.2f}**")
         
         if st.button(f"Adicionar {produto['nome']}", key=f"add_{i}"):
             st.session_state.carrinho.append({"item": produto["nome"], "preco": produto["preco"]})
-            st.toast(f"✅ {produto['nome']} adicionado ao carrinho!", icon="🛒")
+            st.toast(f"✅ {produto['nome']} adicionado!", icon="🛒")
         
         st.markdown('</div>', unsafe_allow_html=True)
 
 st.divider()
 
-# Carrinho flutuante
 if st.session_state.carrinho:
     if st.button(f"🛒 Ver Meu Carrinho ({len(st.session_state.carrinho)} itens)", type="primary"):
         st.switch_page("pages/3_pedidos.py")
