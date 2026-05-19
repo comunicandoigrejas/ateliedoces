@@ -7,32 +7,35 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ====================== CSS ATUALIZADO ======================
+# ====================== CSS ULTRA LIMPO ======================
 st.markdown("""
     <style>
     [data-testid="stSidebarNav"], [data-testid="stSidebar"] {display: none !important;}
     .stApp { background-color: #FFF0F5; }
     
-    h1, h2, h3, p, label { color: #1a1a1a !important; }
+    h1, h2, h3, p, label, .stMarkdown { color: #1a1a1a !important; }
 
-    /* Remove caixas brancas no topo */
-    div[data-testid="column"] {
-        padding-top: 0 !important;
+    /* Remove TODOS os espaços em branco no topo e entre colunas */
+    div[data-testid="stVerticalBlock"] > div:first-child,
+    div[data-testid="column"] > div:first-child,
+    .element-container:first-child {
         margin-top: 0 !important;
+        padding-top: 0 !important;
+        display: block !important;
     }
-    
-    .stMarkdown, .element-container, div[data-testid="stVerticalBlock"] > div:first-child {
-        margin-top: 0 !important;
-        padding-top: 0 !important;
+
+    /* Força remoção de caixas vazias */
+    div[data-testid="stVerticalBlock"] > div > div > div:empty {
+        display: none !important;
     }
 
     .card-doces {
         background-color: white;
-        padding: 15px;
+        padding: 16px;
         border-radius: 18px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        box-shadow: 0 4px 15px rgba(0,0,0,0.12);
         text-align: center;
-        margin: 15px 0 25px 0;
+        margin: 12px 0 25px 0;
     }
     
     .card-doces img {
@@ -47,17 +50,10 @@ st.markdown("""
         font-weight: bold;
     }
 
-    /* ESTILO DO TOAST (produto adicionado) */
+    /* Toast */
     .stToast {
         background-color: #28a745 !important;
         color: white !important;
-        border-radius: 12px !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.2) !important;
-    }
-    
-    .stToast .stMarkdown p {
-        color: white !important;
-        font-weight: 500 !important;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -79,42 +75,44 @@ produtos = [
     {"nome": "Kit 4 Trufas", "preco": 15.00, "imagem": "assets/trufas4unidades1.png"}
 ]
 
-for i in range(0, len(produtos), 2):
-    col1, col2 = st.columns(2, gap="small")
-    
-    with col1:
-        if i < len(produtos):
-            produto = produtos[i]
-            st.markdown('<div class="card-doces">', unsafe_allow_html=True)
-            try:
-                st.image(produto["imagem"], width=200)
-            except:
-                st.warning(f"Imagem não encontrada")
-            st.subheader(produto['nome'])
-            st.markdown(f"**R$ {produto['preco']:.2f}**")
-            
-            if st.button(f"Adicionar {produto['nome']}", key=f"add_{i}"):
-                st.session_state.carrinho.append({"item": produto["nome"], "preco": produto["preco"]})
-                st.toast(f"✅ {produto['nome']} adicionado ao carrinho!", icon="🛒")
-            
-            st.markdown('</div>', unsafe_allow_html=True)
+# Abordagem com container + columns mais controlada
+container = st.container()
 
-    with col2:
-        if i + 1 < len(produtos):
-            produto = produtos[i+1]
-            st.markdown('<div class="card-doces">', unsafe_allow_html=True)
-            try:
-                st.image(produto["imagem"], width=200)
-            except:
-                st.warning(f"Imagem não encontrada")
-            st.subheader(produto['nome'])
-            st.markdown(f"**R$ {produto['preco']:.2f}**")
-            
-            if st.button(f"Adicionar {produto['nome']}", key=f"add_{i+1}"):
-                st.session_state.carrinho.append({"item": produto["nome"], "preco": produto["preco"]})
-                st.toast(f"✅ {produto['nome']} adicionado ao carrinho!", icon="🛒")
-            
-            st.markdown('</div>', unsafe_allow_html=True)
+with container:
+    for i in range(0, len(produtos), 2):
+        col1, col2 = st.columns(2, gap="medium")
+        
+        with col1:
+            if i < len(produtos):
+                p = produtos[i]
+                st.markdown('<div class="card-doces">', unsafe_allow_html=True)
+                try:
+                    st.image(p["imagem"], width=205)
+                except:
+                    st.warning("Imagem não encontrada")
+                st.subheader(p['nome'])
+                st.markdown(f"**R$ {p['preco']:.2f}**")
+                
+                if st.button(f"Adicionar {p['nome']}", key=f"add_{i}"):
+                    st.session_state.carrinho.append({"item": p["nome"], "preco": p["preco"]})
+                    st.toast(f"✅ {p['nome']} adicionado ao carrinho!", icon="🛒")
+                st.markdown('</div>', unsafe_allow_html=True)
+
+        with col2:
+            if i + 1 < len(produtos):
+                p = produtos[i+1]
+                st.markdown('<div class="card-doces">', unsafe_allow_html=True)
+                try:
+                    st.image(p["imagem"], width=205)
+                except:
+                    st.warning("Imagem não encontrada")
+                st.subheader(p['nome'])
+                st.markdown(f"**R$ {p['preco']:.2f}**")
+                
+                if st.button(f"Adicionar {p['nome']}", key=f"add_{i+1}"):
+                    st.session_state.carrinho.append({"item": p["nome"], "preco": p["preco"]})
+                    st.toast(f"✅ {p['nome']} adicionado ao carrinho!", icon="🛒")
+                st.markdown('</div>', unsafe_allow_html=True)
 
 st.divider()
 
