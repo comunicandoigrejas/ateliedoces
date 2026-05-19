@@ -5,11 +5,36 @@ st.set_page_config(page_title="Gestão Ateliê", layout="centered", initial_side
 
 URL_PLANILHA = "https://script.google.com/macros/s/AKfycbwgRjd6uakrLSiry3hg4Uu43GUymgS-2Cm1x5sD8yXvp38W799MoG7XBnZT9JzGq2tViA/exec"
 
+# ====================== CSS CORRIGIDO ======================
 st.markdown("""
     <style>
-    [data-testid="stSidebarNav"] {display: none;}
+    [data-testid="stSidebarNav"] {display: none !important;}
     .stApp { background-color: #FFF0F5; }
+    
     h1, h2, h3, p, label { color: #1a1a1a !important; }
+
+    /* Estilo global para todos os botões */
+    div.stButton > button { 
+        background-color: #8E44AD !important; 
+        color: white !important; 
+        border-radius: 15px !important; 
+        font-weight: bold !important; 
+        height: 3.8em;
+        width: 100%;
+        border: none !important;
+        font-size: 1.05em;
+    }
+    
+    div.stButton > button:hover {
+        background-color: #9B59B6 !important;
+        color: white !important;
+    }
+
+    /* Força o botão Voltar também */
+    div.stButton > button[kind="secondary"] {
+        background-color: #8E44AD !important;
+        color: white !important;
+    }
     </style>
     """, unsafe_allow_html=True)
 
@@ -32,7 +57,7 @@ def buscar_dados():
 dados = buscar_dados()
 
 if dados:
-    lista_pedidos = dados.get('pedidos', [])[1:]  # Ignora cabeçalho
+    lista_pedidos = dados.get('pedidos', [])[1:]
     
     if not lista_pedidos:
         st.info("Nenhum pedido encontrado.")
@@ -57,7 +82,7 @@ if dados:
                 
                 try:
                     index_atual = opcoes_status.index(status_atual)
-                except:
+                except ValueError:
                     index_atual = 0
 
                 novo_status = st.selectbox(
@@ -68,7 +93,7 @@ if dados:
                 )
 
                 if st.button("💾 Atualizar Pedido", key=f"btn_{i}", type="primary"):
-                    with st.spinner("Atualizando..."):
+                    with st.spinner("Atualizando na planilha..."):
                         payload = {
                             "action": "update",
                             "whatsapp": str(zap_cliente),
