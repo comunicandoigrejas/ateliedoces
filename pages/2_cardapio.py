@@ -7,7 +7,7 @@ st.set_page_config(
     initial_sidebar_state="collapsed"
 )
 
-# ====================== CSS FORTEMENTE LIMPO ======================
+# ====================== CSS AGRESSIVO ======================
 st.markdown("""
     <style>
     [data-testid="stSidebarNav"], [data-testid="stSidebar"] {display: none !important;}
@@ -15,19 +15,19 @@ st.markdown("""
     
     h1, h2, h3, p, label { color: #1a1a1a !important; }
 
-    /* Remove caixas brancas vazias no topo */
-    div[data-testid="column"] > div:first-child {
+    /* Remove TODOS os espaços e caixas brancas no topo */
+    div[data-testid="column"] {
         padding-top: 0 !important;
         margin-top: 0 !important;
     }
     
-    .element-container, .stMarkdown, div[data-testid="stVerticalBlock"] > div:first-child {
+    .stMarkdown, .element-container, div[data-testid="stVerticalBlock"] > div {
         margin-top: 0 !important;
         padding-top: 0 !important;
     }
 
-    /* Esconde qualquer widget vazio ou caixa branca */
-    .stTextInput, .stTextArea, input, textarea {
+    /* Esconde qualquer elemento vazio ou caixa branca */
+    div[data-testid="stVerticalBlock"] > div:first-child {
         display: none !important;
     }
 
@@ -37,12 +37,12 @@ st.markdown("""
         border-radius: 18px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         text-align: center;
-        margin-bottom: 25px;
+        margin: 15px 0 25px 0;
     }
     
     .card-doces img {
         border-radius: 12px;
-        margin: 5px 0 12px 0;
+        margin-bottom: 12px;
     }
     
     div.stButton > button {
@@ -50,7 +50,6 @@ st.markdown("""
         color: white !important;
         border-radius: 12px;
         font-weight: bold;
-        margin-top: 10px;
     }
     </style>
     """, unsafe_allow_html=True)
@@ -61,7 +60,6 @@ if st.button("⬅️ Menu Inicial"):
 st.header("🍰 Nosso Cardápio")
 st.markdown("Escolha as bênçãos de hoje:")
 
-# Carrinho
 if 'carrinho' not in st.session_state:
     st.session_state.carrinho = []
 
@@ -73,26 +71,38 @@ produtos = [
     {"nome": "Kit 4 Trufas", "preco": 15.00, "imagem": "assets/trufas4unidades1.png"}
 ]
 
-# Usando container para melhor controle
-with st.container():
-    cols = st.columns(2)
-
-    for i, produto in enumerate(produtos):
-        with cols[i % 2]:
+# Layout sem colunas tradicionais para evitar caixas
+for i in range(0, len(produtos), 2):
+    col1, col2 = st.columns(2, gap="small")
+    
+    with col1:
+        if i < len(produtos):
+            produto = produtos[i]
             st.markdown('<div class="card-doces">', unsafe_allow_html=True)
-            
             try:
                 st.image(produto["imagem"], width=200)
             except:
-                st.error(f"Imagem não encontrada: {produto['nome']}")
-            
+                st.warning(f"Imagem não encontrada")
             st.subheader(produto['nome'])
             st.markdown(f"**R$ {produto['preco']:.2f}**")
-            
             if st.button(f"Adicionar {produto['nome']}", key=f"add_{i}"):
                 st.session_state.carrinho.append({"item": produto["nome"], "preco": produto["preco"]})
                 st.toast(f"✅ {produto['nome']} adicionado!", icon="🛒")
-            
+            st.markdown('</div>', unsafe_allow_html=True)
+
+    with col2:
+        if i + 1 < len(produtos):
+            produto = produtos[i+1]
+            st.markdown('<div class="card-doces">', unsafe_allow_html=True)
+            try:
+                st.image(produto["imagem"], width=200)
+            except:
+                st.warning(f"Imagem não encontrada")
+            st.subheader(produto['nome'])
+            st.markdown(f"**R$ {produto['preco']:.2f}**")
+            if st.button(f"Adicionar {produto['nome']}", key=f"add_{i+1}"):
+                st.session_state.carrinho.append({"item": produto["nome"], "preco": produto["preco"]})
+                st.toast(f"✅ {produto['nome']} adicionado!", icon="🛒")
             st.markdown('</div>', unsafe_allow_html=True)
 
 st.divider()
