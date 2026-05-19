@@ -12,7 +12,7 @@ st.set_page_config(
 
 # --- CONFIGURAÇÕES ---
 URL_PLANILHA = "https://script.google.com/macros/s/AKfycbwgRjd6uakrLSiry3hg4Uu43GUymgS-2Cm1x5sD8yXvp38W799MoG7XBnZT9JzGq2tViA/exec"
-WHATSAPP_ADMIN = "19992709717"
+WHATSAPP_ADMIN = "1999200-9129"
 
 # --- ESTILIZAÇÃO CSS ---
 st.markdown("""
